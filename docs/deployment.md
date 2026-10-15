@@ -2,7 +2,7 @@
 
 **Status: not deployed yet.** The repository is ready for Render (web) + Neon (PostgreSQL) + Brevo (email). Nothing has been purchased or provisioned. Running costs: see the hosting cost note (about $12–22/month).
 
-The client owns every account; Configur is invited as a team member.
+The domain is registered in the client's business name. Hosting accounts (Render, Neon, Brevo) can be Configur's (managed hosting billed to the client) or the client's own with Configur invited; the client owns the data either way. Render deploys the `main` branch.
 
 ## 1. Neon — database (about 10 minutes)
 
