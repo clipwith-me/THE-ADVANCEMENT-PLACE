@@ -72,7 +72,6 @@ export function sanitizeFilename(name: string, ext: DocumentExt): string {
     .split(/[\\/]/)
     .pop()!
     .replace(/\.[A-Za-z0-9]{1,8}$/, "")
-    // eslint-disable-next-line no-control-regex
     .replace(/[\u0000-\u001f\u007f"<>:|?*%;`$]/g, "")
     .replace(/\s+/g, " ")
     .replace(/^\.+/, "")

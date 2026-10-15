@@ -15,19 +15,19 @@ export function MobileNav({
   dashboard: string | null;
   isAdmin?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  // Remember which page the menu was opened on: navigating closes it with no effect needed.
+  const [openOn, setOpenOn] = useState<string | null>(null);
+  const open = openOn === pathname;
+  const setOpen = (value: boolean) => setOpenOn(value ? pathname : null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-
-  // Close on navigation.
-  useEffect(() => setOpen(false), [pathname]);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setOpen(false);
+        setOpenOn(null);
         buttonRef.current?.focus();
       }
     };
@@ -49,7 +49,7 @@ export function MobileNav({
         aria-expanded={open}
         aria-controls="mobile-menu"
         aria-label={open ? "Close menu" : "Open menu"}
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => setOpen(!open)}
       >
         {open ? <X aria-hidden className="size-6" /> : <Menu aria-hidden className="size-6" />}
       </button>
