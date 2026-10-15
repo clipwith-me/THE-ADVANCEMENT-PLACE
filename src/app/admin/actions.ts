@@ -10,6 +10,7 @@ import { addApplicationNote, updateApplicationStatus } from "@/server/services/a
 import { updateEnquiry } from "@/server/services/enquiry-service";
 import { createJob, transitionJob, updateJob, type JobTransition } from "@/server/services/job-service";
 import { updateSettings } from "@/server/services/settings-service";
+import { inviteAdmin, setAdminStatus } from "@/server/services/team-service";
 
 // Every action re-authenticates and services re-check the policy; the admin
 // layout's guard alone is never relied on.
@@ -119,4 +120,35 @@ export async function settingsAction(_prev: FormState, form: FormData): Promise<
   }
   revalidatePath("/", "layout");
   return success("Settings saved.", values);
+}
+
+export async function inviteAdminAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const admin = await requireAdmin();
+  const values = formToObject(form);
+  let result: { emailed: boolean; promoted: boolean };
+  try {
+    result = await inviteAdmin(admin, values);
+  } catch (e) {
+    return toFormState(e, values);
+  }
+  revalidatePath("/admin/team");
+  const who = values.email ?? "they";
+  return success(
+    result.emailed
+      ? `Invitation sent. ${who} will receive an email to choose their password.`
+      : `Access granted, but the invitation email couldn't be sent. Ask ${who} to use “Forgot your password?” on the sign-in page.`,
+    { name: "", email: "" },
+  );
+}
+
+export async function adminAccessAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const admin = await requireAdmin();
+  const status = form.get("status") === "ACTIVE" ? "ACTIVE" : "SUSPENDED";
+  try {
+    await setAdminStatus(admin, String(form.get("id") ?? ""), status);
+  } catch (e) {
+    return toFormState(e);
+  }
+  revalidatePath("/admin/team");
+  return success(status === "ACTIVE" ? "Access restored." : "Access removed.");
 }

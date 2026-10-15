@@ -1,0 +1,42 @@
+name: Scheduled maintenance
+# Runs the routine jobs nobody should have to remember. A failed run emails
+# the repository's watchers, which doubles as an uptime alert.
+on:
+  schedule:
+    - cron: "17 */6 * * *"   # health check every 6 hours
+    - cron: "41 2 1 * *"     # data-retention purge, 1st of each month
+  workflow_dispatch:
+
+jobs:
+  health:
+    if: github.event.schedule != '41 2 1 * *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the live site responds and the database is reachable
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          if [ -z "$SITE_URL" ]; then echo "SITE_URL repository variable not set yet; skipping."; exit 0; fi
+          for i in 1 2 3; do
+            if curl -fsS --max-time 20 "$SITE_URL/api/health" | grep -q '"ok"'; then echo "Healthy"; exit 0; fi
+            sleep 30
+          done
+          echo "::error::$SITE_URL/api/health is failing"; exit 1
+
+  retention:
+    if: github.event.schedule == '41 2 1 * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Delete documents past the retention period
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+          SESSION_SECRET: ${{ secrets.PRODUCTION_SESSION_SECRET }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then echo "PRODUCTION_DATABASE_URL secret not set yet; skipping."; exit 0; fi
+          npm run retention:purge -- --yes

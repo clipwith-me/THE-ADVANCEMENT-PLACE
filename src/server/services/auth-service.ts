@@ -29,13 +29,13 @@ export interface RequestContext {
 }
 
 
-async function issueToken(userId: string, type: AuthTokenType): Promise<string> {
+async function issueToken(userId: string, type: AuthTokenType, ttlMs = TOKEN_TTL[type]): Promise<string> {
   const token = randomToken();
   await db.$transaction([
     // Only the newest link of each type works.
     db.authToken.deleteMany({ where: { userId, type, usedAt: null } }),
     db.authToken.create({
-      data: { userId, type, tokenHash: sha256Hex(token), expiresAt: new Date(Date.now() + TOKEN_TTL[type]) },
+      data: { userId, type, tokenHash: sha256Hex(token), expiresAt: new Date(Date.now() + ttlMs) },
     }),
   ]);
   return token;
@@ -121,6 +121,15 @@ export async function login(raw: Record<string, string>, ctx: RequestContext, po
   await audit({ actorId: user.id, action: "auth.login", entityType: "User", entityId: user.id, metadata: { portal } });
   const session = await createSession(user.id, user.role);
   return { user, session };
+}
+
+/**
+ * Single-use "choose your password" link for a newly invited staff member.
+ * Same mechanism as a reset, valid for 72 hours.
+ */
+export async function createPasswordSetupLink(userId: string): Promise<string> {
+  const token = await issueToken(userId, "PASSWORD_RESET", 72 * 3600_000);
+  return `${env().APP_URL}/reset-password?token=${encodeURIComponent(token)}`;
 }
 
 // ─── Password reset ──────────────────────────────────────────────────────────

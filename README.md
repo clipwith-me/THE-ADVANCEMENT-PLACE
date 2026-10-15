@@ -37,7 +37,7 @@ Without SMTP configured, emails (verification, password reset) are printed to th
 | `npm run gate` | lint + typecheck + test + build |
 | `npm run db:migrate` / `db:migrate:deploy` | Create/apply migrations (dev / production) |
 | `npm run db:seed` / `db:seed:demo` / `db:demo:remove -- --yes` | Reference data / demo data / remove demo data |
-| `npm run admin:create` / `admin:grant` / `admin:revoke` / `admin:list` | Administrator provisioning ([docs/handover.md](docs/handover.md)) |
+| `npm run admin:create` / `admin:grant` / `admin:revoke` / `admin:list` | First administrator / fallback (day-to-day staff management is in Admin › Staff) |
 | `npm run retention:purge -- --yes` | Delete documents past the retention period |
 
 ## Documentation
@@ -46,5 +46,6 @@ Without SMTP configured, emails (verification, password reset) are printed to th
 - [docs/architecture.md](docs/architecture.md) — structure, data model, design decisions
 - [docs/security.md](docs/security.md) — implemented controls, tests, known limitations
 - [docs/deployment.md](docs/deployment.md) — production setup, DNS, email, backups
-- [docs/handover.md](docs/handover.md) — admin operations, demo removal, retention
+- [docs/owners-guide.md](docs/owners-guide.md) — running the site without a developer
+- [docs/handover.md](docs/handover.md) — admin operations, automation setup, demo removal, retention
 - [docs/product-decisions.md](docs/product-decisions.md) — decisions the client should confirm

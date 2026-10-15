@@ -97,3 +97,19 @@ export function enquiryNotificationEmail(
     }),
   };
 }
+
+export function adminInviteEmail(to: string, name: string, invitedBy: string, url: string): EmailMessage {
+  return {
+    to,
+    subject: `You've been added as an administrator of ${BUSINESS.name}`,
+    ...render({
+      heading: `Welcome, ${name}`,
+      paragraphs: [
+        `${invitedBy} has given you administrator access to the ${BUSINESS.name} website.`,
+        "Choose your password to finish setting up your account. This link expires in 72 hours and can be used once.",
+      ],
+      action: { label: "Choose your password", url },
+      footnote: "If the link has expired, use \u201cForgot your password?\u201d on the sign-in page with this email address.",
+    }),
+  };
+}

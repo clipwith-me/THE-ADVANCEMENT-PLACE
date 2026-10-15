@@ -1,6 +1,10 @@
 # Handover guide
 
+For the business owner's plain-language version, see [owners-guide.md](owners-guide.md).
+
 ## Administrators
+
+Day to day, staff are added and removed in **Admin › Staff** (invite by email; remove access = suspend). The CLI below is only for creating the very first administrator, or as a fallback.
 
 - Create: `npm run admin:create -- --email staff@example.com --name "Staff Name"` (password prompted, hidden; ≥14 characters). For CI/deploy pipes: `printf '%s' "$PW" | npm run admin:create -- --email … --name … --password-stdin`.
 - Promote an existing account: `npm run admin:grant -- --email …`
@@ -37,3 +41,15 @@ npm run db:demo:remove -- --yes # deletes demo jobs and any applications to them
 - Legal review of the Privacy Policy, Terms and retention period (NDPA 2023).
 - Any service fees or eligibility rules for career assistance (none are stated on the site).
 - Optional: licensed photography of the office/team (none was invented).
+
+## Automation (no developer needed for routine upkeep)
+
+- **CI** (`.github/workflows/ci.yml`): lint, typecheck, tests, build and dependency audit on every push and PR.
+- **Dependabot** (`.github/dependabot.yml`): monthly grouped minor/patch updates; `dependabot-automerge.yml` merges them once CI passes. Major upgrades stay open for a developer.
+- **Maintenance** (`.github/workflows/maintenance.yml`): health check of `SITE_URL` every 6 hours (a failure emails the repo owner) and the retention purge on the 1st of each month.
+
+One-time GitHub setup for this to work:
+1. Settings → General: set the default branch to `main`; tick **Allow auto-merge**.
+2. Settings → Branches: protect `main`, require the **CI / checks** status check.
+3. Settings → Secrets and variables → Actions: variable `SITE_URL=https://theadvancementplace.com`; secrets `PRODUCTION_DATABASE_URL` (Neon pooled URL) and `PRODUCTION_SESSION_SECRET` (same value as on Render).
+4. Make sure the account that should receive failure alerts watches the repository.

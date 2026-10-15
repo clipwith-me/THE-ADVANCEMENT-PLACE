@@ -15,6 +15,7 @@ import {
   Mail,
   Menu,
   Settings,
+  UserCog,
   Users,
   X,
 } from "lucide-react";
@@ -43,6 +44,7 @@ const sections = (c: Counts) => [
   {
     title: "System",
     items: [
+      { href: "/admin/team", label: "Staff", icon: UserCog },
       { href: "/admin/activity", label: "Activity log", icon: History },
       { href: "/admin/settings", label: "Settings", icon: Settings },
     ],
