@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. Brand values are sampled from the supplied logo:
+ *   logo highlight orange  #F29840  (brand-400)
+ *   logo mid copper        #D28945  (brand-500)
+ *   logo base bronze       #6E604E  (earth-600)
+ * Text-bearing orange uses brand-700 (#A3561A, 5.4:1 on white) so it meets
+ * WCAG AA; the bright logo orange is reserved for accents, focus rings and
+ * large decorative marks.
+ */
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-serif), ui-serif, Georgia, "Times New Roman", serif;
+
+  --color-brand-50: #fef6ec;
+  --color-brand-100: #fce9d2;
+  --color-brand-200: #f8d0a3;
+  --color-brand-300: #f4b26e;
+  --color-brand-400: #f29840;
+  --color-brand-500: #d28945;
+  --color-brand-600: #b8682a;
+  --color-brand-700: #a3561a;
+  --color-brand-800: #84440f;
+  --color-brand-900: #5f310c;
+
+  --color-earth-500: #8a7a66;
+  --color-earth-600: #6e604e;
+  --color-earth-700: #564b3d;
+
+  --color-ink-50: #faf7f2;
+  --color-ink-100: #f5f1ea;
+  --color-ink-200: #ebe5dc;
+  --color-ink-300: #ddd6cc;
+  --color-ink-400: #bdb5aa;
+  --color-ink-500: #8f877d;
+  --color-ink-600: #6b645c;
+  --color-ink-700: #4a443e;
+  --color-ink-800: #2e2a26;
+  --color-ink-900: #1f1c19;
+  --color-ink-950: #141210;
+
+  --color-success-50: #ecf7ef;
+  --color-success-700: #1d6b3a;
+  --color-warning-50: #fff7e6;
+  --color-warning-700: #8a5a00;
+  --color-danger-50: #fdeeee;
+  --color-danger-600: #c0392b;
+  --color-danger-700: #a12a1e;
+  --color-info-50: #edf3fb;
+  --color-info-700: #1f4f8a;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  --shadow-xs: 0 1px 2px rgb(31 28 25 / 0.05);
+  --shadow-card: 0 1px 2px rgb(31 28 25 / 0.04), 0 4px 12px -2px rgb(31 28 25 / 0.06);
+  --shadow-lift: 0 2px 4px rgb(31 28 25 / 0.05), 0 12px 28px -8px rgb(31 28 25 / 0.14);
+
+  --breakpoint-xs: 22.5rem;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-white font-sans text-ink-900 antialiased;
+    overflow-x: hidden;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply text-balance;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-brand-400);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  ::selection {
+    background: var(--color-brand-200);
+    color: var(--color-ink-900);
+  }
+  [hidden] {
+    display: none !important;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.14em] text-brand-700;
+  }
+  .prose-plain p + p {
+    margin-top: 0.875rem;
+  }
+  .link {
+    @apply font-medium text-brand-700 underline decoration-brand-300 underline-offset-4 hover:decoration-brand-700;
+  }
+  .card {
+    @apply rounded-lg border border-ink-200 bg-white shadow-card;
+  }
+}
+
+/* Respect users who prefer less motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

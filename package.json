@@ -1,0 +1,68 @@
+{
+  "name": "the-advancement-place",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Advancement Place — recruitment, job discovery and career services platform.",
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "scripts": {
+    "postinstall": "prisma generate",
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "eslint . --cache --cache-location node_modules/.cache/eslint/",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:seed:demo": "tsx prisma/seed-demo.ts",
+    "db:demo:remove": "tsx scripts/remove-demo-data.ts",
+    "admin:create": "tsx scripts/admin.ts create",
+    "admin:grant": "tsx scripts/admin.ts grant",
+    "admin:revoke": "tsx scripts/admin.ts revoke",
+    "admin:list": "tsx scripts/admin.ts list",
+    "retention:purge": "tsx scripts/retention-purge.ts",
+    "gate": "npm run lint && npm run typecheck && npm run test && npm run build"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@node-rs/argon2": "^2.2.2",
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "lucide-react": "^1.57.0",
+    "next": "^16.4.1",
+    "nodemailer": "^10.1.1",
+    "pg": "^8.23.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^22.20.5",
+    "@types/nodemailer": "^8.0.2",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "dotenv": "^18.0.8",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.4.1",
+    "postcss": "^8.5.30",
+    "prisma": "^7.10.0",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.5"
+  },
+  "overrides": {
+    "deepmerge-ts": "^8.0.0",
+    "mysql2": "^3.23.1"
+  }
+}
