@@ -76,6 +76,30 @@ test.describe("public website", () => {
     await expect(page.getByRole("status").filter({ hasText: "your enquiry has been received" })).toBeVisible();
   });
 
+  test("career assistance enquiry submits without the optional CV", async ({ page }) => {
+    await page.goto("/career-assistance");
+    await page.getByLabel("Full name").fill("Ngozi Eze");
+    await page.getByLabel("Email address").fill("ngozi@example.test");
+    await page.getByLabel("Phone number").fill("08031112222");
+    await page.getByLabel("Highest qualification").selectOption("HND");
+    await page.getByLabel("Career interests").fill("Banking");
+    await page.getByLabel("How can we help?").fill("I would like guidance on entering the banking sector.");
+    await page.getByLabel(/I agree that/).check();
+    await page.getByRole("button", { name: "Submit enquiry" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "your enquiry has been received" })).toBeVisible();
+  });
+
+  test("outsourcing enquiry submits without the optional attachment", async ({ page }) => {
+    await page.goto("/freelance-outsourcing");
+    await page.getByLabel("Your name").fill("Firm Example");
+    await page.getByLabel("Email address").fill("firm@example.test");
+    await page.getByLabel("Type of service").selectOption("Outsourcing a project");
+    await page.getByLabel("Project or request description").fill("We need help with a three-month data-entry project.");
+    await page.getByLabel(/I agree that/).check();
+    await page.getByRole("button", { name: "Send enquiry" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "your enquiry has been received" })).toBeVisible();
+  });
+
   for (const path of ["/", "/about", "/contact", "/career-assistance", "/freelance-outsourcing", "/register", "/login", "/privacy"]) {
     test(`no horizontal overflow at 320px: ${path}`, async ({ page }) => {
       await page.setViewportSize({ width: 320, height: 720 });

@@ -19,7 +19,9 @@ export interface IncomingFile {
 /** Reads a File from FormData; returns null when no file was chosen. */
 export async function readUpload(value: FormDataEntryValue | null): Promise<IncomingFile | null> {
   if (!value || typeof value === "string") return null;
-  if (value.size === 0 && !value.name) return null;
+  // Browsers submit an empty file part when no file was chosen (its name
+  // varies by browser), so any zero-byte upload counts as "no file".
+  if (value.size === 0) return null;
   if (value.size > maxUploadBytes()) {
     throw validationError("Upload failed", { file: [`The file is too large. The maximum size is ${env().MAX_UPLOAD_MB} MB.`] });
   }

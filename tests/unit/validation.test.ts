@@ -112,3 +112,13 @@ describe("job validation and search parsing", () => {
     expect(s).toMatchObject({ q: "sales", type: ["FULL_TIME", "PART_TIME"], arrangement: ["REMOTE"], category: undefined, sort: "newest", page: 1 });
   });
 });
+
+describe("readUpload", () => {
+  it("treats the empty part a browser sends for an unused file input as no file", async () => {
+    const { readUpload } = await import("@/server/services/file-service");
+    expect(await readUpload(new File([], ""))).toBeNull();
+    expect(await readUpload(new File([], "blob", { type: "application/octet-stream" }))).toBeNull();
+    expect(await readUpload(null)).toBeNull();
+    expect((await readUpload(new File([new Uint8Array(samplePdf())], "cv.pdf")))?.name).toBe("cv.pdf");
+  });
+});
