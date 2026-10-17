@@ -89,7 +89,7 @@ export default function AboutPage() {
           <div className="flex gap-3 rounded-lg border border-ink-200 p-5">
             <MapPin aria-hidden className="mt-0.5 size-5 shrink-0 text-brand-700" />
             <p className="text-sm text-ink-700">
-              Visit us at our office on Oke-Ilewo Road, Abeokuta — opposite Access Bank. We&apos;re open Monday to Friday, 8:00 AM to 5:00 PM.
+              Visit us at Metroeyes Building, opposite Access Bank, Jide Jones Road, Oke-Ilewo, Abeokuta. We&apos;re open Monday to Friday, 8:00 AM to 5:00 PM.
             </p>
           </div>
           <ContactCard />

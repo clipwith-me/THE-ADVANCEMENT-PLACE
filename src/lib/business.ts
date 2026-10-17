@@ -12,11 +12,11 @@ export const BUSINESS = {
   phoneE164: "+2349169975272",
   // wa.me requires the international number with digits only.
   whatsappNumber: "2349169975272",
+  // As confirmed by the client (17 Oct 2026).
   address: {
     building: "Metroeyes Building",
-    street: "Along Oke-Ilewo Road, Jide Jones Road, opposite Access Bank",
+    street: "Opposite Access Bank, Jide Jones Road, Oke-Ilewo",
     city: "Abeokuta",
-    postalCode: "110104",
     state: "Ogun State",
     country: "Nigeria",
   },
@@ -26,7 +26,7 @@ export const BUSINESS = {
   ],
 } as const;
 
-export const ADDRESS_ONE_LINE = `${BUSINESS.address.building}, ${BUSINESS.address.street}, ${BUSINESS.address.city} ${BUSINESS.address.postalCode}, ${BUSINESS.address.state}, ${BUSINESS.address.country}`;
+export const ADDRESS_ONE_LINE = `${BUSINESS.address.building}, ${BUSINESS.address.street}, ${BUSINESS.address.city}, ${BUSINESS.address.state}, ${BUSINESS.address.country}`;
 
 export function whatsappUrl(message?: string): string {
   const base = `https://wa.me/${BUSINESS.whatsappNumber}`;
