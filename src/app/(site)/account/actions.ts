@@ -13,6 +13,8 @@ import {
   addExperience,
   removeCurrentCv,
   removeEducation,
+  removePhoto,
+  uploadPhoto,
   removeExperience,
   saveProfile,
   uploadCv,
@@ -27,14 +29,17 @@ export async function saveCoreProfileAction(_prev: FormState, form: FormData): P
   const user = await requireCandidate();
   const values = formToObject(form);
   let complete = false;
+  let missing: string[] = [];
   try {
-    complete = (await saveProfile(user.id, values, "core")).complete;
+    ({ complete, missing } = await saveProfile(user.id, values, "core"));
   } catch (e) {
     return toFormState(e, values);
   }
   revalidatePath("/account", "layout");
   continueIfComplete(complete, values.next);
-  return success(complete ? "Profile saved — you're all set." : "Details saved. Upload your CV to finish your profile.");
+  if (complete) return success("Profile saved — you're all set.");
+  const uploads = [missing.includes("photo") && "passport photograph", missing.includes("cv") && "CV"].filter(Boolean);
+  return success(uploads.length ? `Details saved. Upload your ${uploads.join(" and ")} to finish your profile.` : "Details saved.");
 }
 
 export async function saveFullProfileAction(_prev: FormState, form: FormData): Promise<FormState> {
@@ -63,6 +68,33 @@ export async function uploadCvAction(_prev: FormState, form: FormData): Promise<
   revalidatePath("/account", "layout");
   continueIfComplete(complete, next);
   return success("CV uploaded.");
+}
+
+export async function uploadPhotoAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const user = await requireCandidate();
+  const next = typeof form.get("next") === "string" ? (form.get("next") as string) : undefined;
+  let complete = false;
+  try {
+    const file = await readUpload(form.get("photo"));
+    if (!file) return { status: "error", message: "Choose a photo to upload.", fieldErrors: { photo: ["Choose a JPEG or PNG photo"] }, at: Date.now() };
+    complete = (await uploadPhoto(user.id, file)).complete;
+  } catch (e) {
+    return toFormState(e, {}, "photo");
+  }
+  revalidatePath("/account", "layout");
+  continueIfComplete(complete, next);
+  return success("Photo uploaded.");
+}
+
+export async function removePhotoAction(_prev: FormState): Promise<FormState> {
+  const user = await requireCandidate();
+  try {
+    await removePhoto(user.id);
+  } catch (e) {
+    return toFormState(e);
+  }
+  revalidatePath("/account", "layout");
+  return success("Photo removed.");
 }
 
 export async function removeCvAction(_prev: FormState): Promise<FormState> {

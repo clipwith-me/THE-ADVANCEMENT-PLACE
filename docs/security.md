@@ -20,6 +20,8 @@ This document lists what is implemented and tested. It is not a certification; a
 
 **Files**: PDF/DOCX only, validated by content (magic bytes) and extension; PDFs with JavaScript/Launch/embedded files and macro-enabled Word files rejected; size limit (`MAX_UPLOAD_MB`, default 5); server-generated storage keys; sanitised display names; private storage (database); downloads only via `/api/files/:id` with an ownership/role check, `Content-Disposition: attachment`, `nosniff`, `no-store`, sandbox CSP. Admin downloads are audited.
 
+**Passport photos**: JPEG/PNG only, validated by content and extension, min 150×150 px, same size limit; EXIF/XMP/ICC/comments and PNG text/EXIF/time chunks are stripped before storage (only the orientation flag is kept), so no GPS or device data is retained. Served through the same authorised endpoint with `inline` disposition, `nosniff`, a sandbox CSP and a 1-hour private cache (a new upload always gets a new ID). Photo views are not audited, to keep the audit log meaningful.
+
 **Headers**: nonce-based CSP (`script-src 'self' 'nonce-…' 'strict-dynamic'`, `frame-ancestors 'none'`, `object-src 'none'`), HSTS (production), `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`, COOP, no `X-Powered-By`. Private areas: `Cache-Control: private, no-store` and `noindex`.
 
 **Abuse prevention**: Postgres-backed rate limits (login per IP and per account, registration, reset, verification resend, public forms, uploads, applications); identifiers HMAC'd, raw IPs never stored. Honeypot field + consent checkbox on public forms.
@@ -30,7 +32,7 @@ This document lists what is implemented and tested. It is not a certification; a
 
 ## Tests (run, passing)
 
-Integration (`tests/integration`, real Postgres): registration/login/generic errors, admin portal rejection, brute-force lockout, session expiry & suspension, reset single-use/expiry/session invalidation, mass-assignment of role/status/isDemo, IDOR on applications and CVs, admin-only actions, duplicate applications incl. concurrency, draft/expired/closed visibility, SQL-injection search strings, XSS payload escaping in email, invalid/oversized/active-content uploads, public-form rate limits, account deletion.
+Integration (`tests/integration`, real Postgres): registration/login/generic errors, admin portal rejection, brute-force lockout, session expiry & suspension, reset single-use/expiry/session invalidation, mass-assignment of role/status/isDemo, IDOR on applications and CVs, admin-only actions, duplicate applications incl. concurrency, draft/expired/closed visibility, SQL-injection search strings, XSS payload escaping in email, invalid/oversized/active-content uploads, photo type/size checks and metadata stripping, photo access control, public-form rate limits, account deletion.
 E2E (`e2e/`): security headers, private-route redirects, candidate cannot open another's application/CV or `/admin`, anonymous CV download 404, CSP present.
 
 ## Known limitations / operational requirements

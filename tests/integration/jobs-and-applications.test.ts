@@ -123,12 +123,12 @@ describe("admin job management", () => {
 });
 
 describe("profile gate and applications", () => {
-  it("NYSC is optional and the profile is incomplete until a CV is uploaded", async () => {
+  it("NYSC is optional and the profile is incomplete until a photo and CV are uploaded", async () => {
     const c = await makeCandidate();
     const r = await saveProfile(c.id, completeProfileForm(), "core");
     expect(r.complete).toBe(false);
-    expect(r.missing).toEqual(["cv"]);
-    await updateSettings(await makeAdmin(), { requireCvForProfile: "", publicJobPreview: "on", applicationsOpen: "on" });
+    expect(r.missing).toEqual(["photo", "cv"]);
+    await updateSettings(await makeAdmin(), { requireCvForProfile: "", requirePhotoForProfile: "", publicJobPreview: "on", applicationsOpen: "on" });
     expect((await getCompleteness(c.id)).result.complete).toBe(true);
   });
 

@@ -22,7 +22,7 @@ Rules: no business logic in components or route handlers; every service that tou
 
 ## Key flows
 
-- **Profile gate** — `evaluateProfileCompleteness()` (pure) is evaluated live on every gated request and action: `/jobs`, applying, and job pages (when public previews are off). Incomplete → redirect to `/account/setup?next=…` listing what's missing. Required: name, email, phone, state, headline, highest qualification, ≥1 skill, CV (CV requirement toggleable in admin settings). NYSC is never required.
+- **Profile gate** — `evaluateProfileCompleteness()` (pure) is evaluated live on every gated request and action: `/jobs`, applying, and job pages (when public previews are off). Incomplete → redirect to `/account/setup?next=…` listing what's missing. Required: name, email, phone, state, experience summary (`headline`), highest qualification, ≥1 skill, passport photo, CV (photo and CV requirements toggleable in admin settings). NYSC is never required.
 - **Job visibility** — `liveJobWhere()` / `publicJobState()`: only `PUBLISHED` jobs with no passed deadline are listed, searchable, indexable or open to applications. Expired/closed adverts show "no longer accepting applications" and are noindexed; drafts/archived 404.
 - **Applications** — one per candidate per job, enforced by a `@@unique([jobId, candidateId])` constraint (concurrent double-submits are caught). Each application keeps a profile snapshot and a reference to the CV used; replacing a CV never alters past applications. Status changes are written to `ApplicationStatusEvent`; internal notes live in a separate admin-only table.
 - **Enquiries** — persisted first, then the notification email is attempted; `notifiedAt` records whether it was delivered, and the admin view warns when it wasn't.

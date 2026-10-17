@@ -35,7 +35,7 @@ export default function PrivacyPage() {
                   itself).
                 </li>
                 <li>
-                  <strong>Candidate profile:</strong> phone number, location, professional headline, qualifications, skills, and optional
+                  <strong>Candidate profile:</strong> phone number, location, a summary of your experience, passport photograph, qualifications, skills, and optional
                   details you choose to add such as education, employment history, certifications, NYSC status and links.
                 </li>
                 <li>
@@ -93,7 +93,8 @@ export default function PrivacyPage() {
           title: "How we protect your information",
           body: (
             <ul>
-              <li>CVs are stored in private storage and can only be downloaded after a permission check.</li>
+              <li>CVs and passport photographs are stored in private storage and can only be viewed after a permission check.</li>
+              <li>Location and device details embedded in uploaded photos are removed before storage.</li>
               <li>Passwords are hashed with Argon2id; sessions use secure, HTTP-only cookies.</li>
               <li>Connections to the website are encrypted with HTTPS.</li>
               <li>Administrative actions are recorded in an audit log.</li>
@@ -106,11 +107,11 @@ export default function PrivacyPage() {
           body: (
             <>
               <p>
-                We keep your account and profile while your account is active. CVs attached to unsuccessful or withdrawn applications are
+                We keep your account and profile while your account is active. CVs and photos attached to unsuccessful or withdrawn applications are
                 deleted after a retention period (currently 12 months), and enquiry attachments are deleted after the enquiry has been
                 resolved for the same period.
               </p>
-              <p>You can delete your account at any time from your account settings. This permanently removes your profile, CVs and applications.</p>
+              <p>You can delete your account at any time from your account settings. This permanently removes your profile, photo, CVs and applications.</p>
             </>
           ),
         },

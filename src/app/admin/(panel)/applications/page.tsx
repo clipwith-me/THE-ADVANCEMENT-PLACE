@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Avatar } from "@/components/ui/avatar";
 import { Download, FileText } from "lucide-react";
 import { DataTable, FilterBar, FilterInput, FilterSelect } from "@/components/admin/data-table";
 import { EmptyState, PageHeader, Pagination } from "@/components/ui/misc";
@@ -61,11 +62,14 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
               header: "Candidate",
               hideOnMobile: true,
               cell: (a) => (
-                <div className="min-w-0">
-                  <Link href={`/admin/applications/${a.id}`} className="font-semibold text-ink-900 hover:underline">
-                    {a.candidate.name}
-                  </Link>
-                  <p className="truncate text-xs text-ink-500">{a.candidate.email}</p>
+                <div className="flex min-w-0 items-center gap-3">
+                  <Avatar photoId={a.photoFile?.id} name={a.candidate.name} size="sm" />
+                  <div className="min-w-0">
+                    <Link href={`/admin/applications/${a.id}`} className="font-semibold text-ink-900 hover:underline">
+                      {a.candidate.name}
+                    </Link>
+                    <p className="truncate text-xs text-ink-500">{a.candidate.email}</p>
+                  </div>
                 </div>
               ),
             },

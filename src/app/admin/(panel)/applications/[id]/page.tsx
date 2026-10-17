@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Avatar } from "@/components/ui/avatar";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Download, ExternalLink, UserRound } from "lucide-react";
 import { ActionForm, SubmitButton } from "@/components/forms/action-form";
@@ -67,12 +68,16 @@ export default async function AdminApplicationPage({ params }: { params: Promise
                 <UserRound aria-hidden className="size-4" /> Current profile
               </Link>
             </div>
+            <div className="mt-4 flex items-center gap-4">
+              <Avatar photoId={app.photoFile?.id} name={app.candidate.name} size="xl" />
+              {!app.photoFile && <p className="text-sm text-ink-600">No passport photograph was submitted with this application.</p>}
+            </div>
             <DefinitionList
               items={[
                 ["Email", s.email ? <a className="link" href={`mailto:${s.email}`}>{s.email}</a> : null],
                 ["Phone", s.phone ? <a className="link" href={`tel:${s.phone}`}>{s.phone}</a> : null],
                 ["Location", [s.city, s.state].filter(Boolean).join(", ") || null],
-                ["Headline", s.headline],
+                ["Experience", s.headline],
                 ["Qualification", [s.qualification, s.qualificationDetail].filter(Boolean).join(" — ") || null],
                 ["NYSC status", s.nyscStatus ? NYSC_STATUS_LABEL[s.nyscStatus] : "Not provided"],
                 ["Skills", s.skills?.length ? s.skills.join(", ") : null],

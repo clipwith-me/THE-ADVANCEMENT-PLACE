@@ -1,6 +1,8 @@
 import { ArrowRight } from "lucide-react";
 import { CompletenessCard, CoreProfileFields, CurrentCv } from "@/components/account/profile-parts";
 import { CvUploadForm } from "@/components/account/cv-upload-form";
+import { PhotoUploadForm } from "@/components/account/photo-upload-form";
+import { Avatar } from "@/components/ui/avatar";
 import { ActionForm, SubmitButton } from "@/components/forms/action-form";
 import { Alert } from "@/components/ui/alert";
 import { ButtonLink } from "@/components/ui/button";
@@ -21,8 +23,10 @@ export default async function ProfileSetupPage({ searchParams }: { searchParams:
   const safeNext = safeNextPath(next, "/jobs");
   const { bundle, result } = await getCompleteness(user.id);
   const cv = bundle.profile?.currentCv;
+  const photo = bundle.profile?.photo;
   const needsCv = result.missing.includes("cv");
-  const detailsMissing = result.missing.filter((k) => k !== "cv");
+  const needsPhoto = result.missing.includes("photo");
+  const detailsMissing = result.missing.filter((k) => k !== "cv" && k !== "photo");
 
   return (
     <>
@@ -70,9 +74,29 @@ export default async function ProfileSetupPage({ searchParams }: { searchParams:
 
           <section className="card p-5 sm:p-6" aria-labelledby="step-2">
             <div className="mb-5 flex items-center gap-3">
-              <StepNumber n={2} done={!needsCv && Boolean(cv)} />
+              <StepNumber n={2} done={!needsPhoto && Boolean(photo)} />
               <div>
                 <h2 id="step-2" className="text-lg font-semibold">
+                  Passport photograph
+                </h2>
+                <p className="text-sm text-ink-600">
+                  {needsPhoto ? "Required — it helps our team identify you." : "You can replace it at any time."}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+              <Avatar photoId={photo?.id} name={bundle.name} size="lg" />
+              <div className="min-w-0 flex-1">
+                <PhotoUploadForm next={safeNext} hasPhoto={Boolean(photo)} maxMb={env().MAX_UPLOAD_MB} />
+              </div>
+            </div>
+          </section>
+
+          <section className="card p-5 sm:p-6" aria-labelledby="step-3">
+            <div className="mb-5 flex items-center gap-3">
+              <StepNumber n={3} done={!needsCv && Boolean(cv)} />
+              <div>
+                <h2 id="step-3" className="text-lg font-semibold">
                   Your CV
                 </h2>
                 <p className="text-sm text-ink-600">{needsCv ? "Required to complete your profile." : "You can replace it at any time."}</p>

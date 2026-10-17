@@ -1,5 +1,5 @@
 import { CheckCircle2, Circle, Download, FileText } from "lucide-react";
-import { SelectField, TextField } from "@/components/forms/fields";
+import { SelectField, TextAreaField, TextField } from "@/components/forms/fields";
 import { ProgressBar } from "@/components/ui/misc";
 import { formatBytes, formatDate } from "@/lib/domain/format";
 import { NYSC_STATUSES, NYSC_STATUS_LABEL, QUALIFICATIONS, QUALIFICATION_LABEL } from "@/lib/domain/labels";
@@ -29,14 +29,15 @@ export function CoreProfileFields({ bundle }: { bundle: ProfileBundle }) {
       />
       <SelectField name="state" label="State of residence" required defaultValue={p?.state} options={candidateLocationOptions} />
       <TextField name="city" label="City or town" optionalLabel defaultValue={p?.city} autoComplete="address-level2" maxLength={80} />
-      <TextField
+      <TextAreaField
         name="headline"
-        label="Professional headline or career interest"
+        label="Your experience"
         required
+        rows={3}
         defaultValue={p?.headline}
-        maxLength={140}
+        maxLength={500}
         className="sm:col-span-2"
-        hint="e.g. “Accounting graduate seeking an entry-level finance role”"
+        hint="Summarise your work experience in a sentence or two, e.g. “3 years in customer service and front-desk administration”. New graduates can describe internships, NYSC or the role you want."
       />
       <SelectField
         name="highestQualification"
@@ -75,8 +76,7 @@ export function CoreProfileFields({ bundle }: { bundle: ProfileBundle }) {
 }
 
 export function CompletenessCard({ result, title = "Profile completion" }: { result: CompletenessResult; title?: string }) {
-  const keys = Object.keys(REQUIREMENT_LABEL) as RequirementKey[];
-  const checked = keys.filter((k) => k !== "cv" || result.total === 8);
+  const checked: RequirementKey[] = result.checked;
   return (
     <div className="card p-5">
       <ProgressBar percent={result.percent} label={title} />

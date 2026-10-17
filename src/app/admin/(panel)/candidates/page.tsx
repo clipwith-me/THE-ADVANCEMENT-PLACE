@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Avatar } from "@/components/ui/avatar";
 import { CheckCircle2, Circle, Users } from "lucide-react";
 import { DataTable, FilterBar, FilterInput, FilterSelect } from "@/components/admin/data-table";
 import { EmptyState, PageHeader, Pagination } from "@/components/ui/misc";
@@ -23,7 +24,7 @@ export default async function CandidatesPage({ searchParams }: { searchParams: P
     <>
       <PageHeader title="Candidates" description={`${total} candidate account${total === 1 ? "" : "s"}`} />
       <FilterBar action="/admin/candidates">
-        <FilterInput name="q" label="Search" defaultValue={q} placeholder="Name, email, headline or skill" />
+        <FilterInput name="q" label="Search" defaultValue={q} placeholder="Name, email, experience or skill" />
         <FilterSelect
           name="complete"
           label="Profile"
@@ -53,15 +54,18 @@ export default async function CandidatesPage({ searchParams }: { searchParams: P
               header: "Candidate",
               hideOnMobile: true,
               cell: (c) => (
-                <div className="min-w-0">
-                  <Link href={`/admin/candidates/${c.id}`} className="font-semibold text-ink-900 hover:underline">
-                    {c.name}
-                  </Link>
-                  <p className="truncate text-xs text-ink-500">{c.email}</p>
+                <div className="flex min-w-0 items-center gap-3">
+                  <Avatar photoId={c.profile?.photoId} name={c.name} size="sm" />
+                  <div className="min-w-0">
+                    <Link href={`/admin/candidates/${c.id}`} className="font-semibold text-ink-900 hover:underline">
+                      {c.name}
+                    </Link>
+                    <p className="truncate text-xs text-ink-500">{c.email}</p>
+                  </div>
                 </div>
               ),
             },
-            { header: "Headline", cell: (c) => <span className="line-clamp-2 text-ink-700">{c.profile?.headline ?? "—"}</span> },
+            { header: "Experience", cell: (c) => <span className="line-clamp-2 text-ink-700">{c.profile?.headline ?? "—"}</span> },
             { header: "Location", cell: (c) => c.profile?.state ?? "—" },
             {
               header: "Profile",

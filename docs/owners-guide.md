@@ -9,14 +9,14 @@ This guide is for The Advancement Place staff. Day-to-day, the website needs no 
 | Hosting, HTTPS certificate, server updates | Render (managed) | Nothing to do |
 | Database backups and restore history | Neon (managed) | Nothing to do |
 | Security and library updates | Dependabot opens one update a month; it is merged automatically only if all automated tests pass, then Render publishes it | An occasional email from GitHub |
-| Deleting old CVs (data protection) | Monthly scheduled job | Nothing to do |
+| Deleting old CVs and photos (data protection) | Monthly scheduled job | Nothing to do |
 | Uptime check | Every 6 hours; if the site is down, GitHub emails the account owner | An email only when something is wrong |
 | Deploying changes | Render publishes `main` automatically, after checking the site starts correctly | Nothing to do |
 
 ## What your staff do in the dashboard (`/admin`)
 
 - **Jobs**: create, publish, close and archive vacancies.
-- **Applications**: review, change status (the candidate is emailed), add notes, download CVs.
+- **Applications**: review, change status (the candidate is emailed), add notes, see passport photos, download CVs.
 - **Candidates**: search and suspend accounts.
 - **Enquiries**: career assistance, freelance/outsourcing and contact messages.
 - **Staff**: add a staff member (they receive an email to choose a password) or remove someone's access. Keep at least two active administrators so one can always help the other.

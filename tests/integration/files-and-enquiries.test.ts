@@ -3,11 +3,14 @@ import { db } from "@/lib/db";
 import { testOutbox } from "@/server/email/mailer";
 import { applyToJob } from "@/server/services/application-service";
 import { getFileForDownload } from "@/server/services/file-service";
-import { removeCurrentCv, uploadCv } from "@/server/services/profile-service";
+import { getCompleteness, removeCurrentCv, removePhoto, uploadCv, uploadPhoto } from "@/server/services/profile-service";
+import { getApplicationForAdmin } from "@/server/services/application-service";
+import { updateSettings } from "@/server/services/settings-service";
 import { getEnquiry, listEnquiries, submitCareerAssistance, submitContact, submitOutsourcing, updateEnquiry } from "@/server/services/enquiry-service";
 import { listCandidates, setCandidateStatus } from "@/server/services/admin-service";
 import { validateSessionToken, createSession } from "@/server/auth/session";
 import { IP, makeAdmin, makeCandidate, makeJob, resetDb, samplePdf } from "../helpers";
+import { sampleJpeg, solidPng } from "../image-fixtures";
 
 beforeEach(resetDb);
 
@@ -16,7 +19,7 @@ describe("private CV storage", () => {
     const alice = await makeCandidate({ complete: true, name: "Alice Example" });
     const bob = await makeCandidate({ name: "Bob Example" });
     const admin = await makeAdmin();
-    const file = await db.storedFile.findFirstOrThrow({ where: { ownerId: alice.id } });
+    const file = await db.storedFile.findFirstOrThrow({ where: { ownerId: alice.id, kind: "CV" } });
 
     // Owner and admin can download; other candidates and anonymous users get "not found".
     expect((await getFileForDownload(alice, file.id)).data.subarray(0, 5).toString()).toBe("%PDF-");
@@ -42,13 +45,67 @@ describe("private CV storage", () => {
 
   it("keeps the CV attached to an application when the candidate replaces it", async () => {
     const c = await makeCandidate({ complete: true });
-    const first = await db.storedFile.findFirstOrThrow({ where: { ownerId: c.id } });
+    const first = await db.storedFile.findFirstOrThrow({ where: { ownerId: c.id, kind: "CV" } });
     await applyToJob(c, (await makeJob()).id, {});
     await uploadCv(c.id, { name: "new-cv.pdf", bytes: samplePdf("new") });
     expect(await db.storedFile.findUnique({ where: { id: first.id } })).not.toBeNull();
     await removeCurrentCv(c.id);
     // The replacement CV wasn't used in an application, so it's deleted outright.
-    expect(await db.storedFile.count({ where: { ownerId: c.id } })).toBe(1);
+    expect(await db.storedFile.count({ where: { ownerId: c.id, kind: "CV" } })).toBe(1);
+  });
+});
+
+describe("passport photographs", () => {
+  it("are private: owner and staff only, never other candidates or visitors", async () => {
+    const alice = await makeCandidate({ complete: true, name: "Alice Example" });
+    const bob = await makeCandidate({ complete: true, name: "Bob Example" });
+    const admin = await makeAdmin();
+    const photo = await db.storedFile.findFirstOrThrow({ where: { ownerId: alice.id, kind: "PHOTO" } });
+    expect(photo.storageKey).toMatch(/^photo\/[0-9a-f-]{36}$/);
+    expect(photo.mimeType).toBe("image/png");
+    expect((await getFileForDownload(alice, photo.id)).file.id).toBe(photo.id);
+    expect((await getFileForDownload(admin, photo.id)).file.id).toBe(photo.id);
+    await expect(getFileForDownload(bob, photo.id)).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(getFileForDownload(null, photo.id)).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("are required for a complete profile unless the admin turns the rule off", async () => {
+    const admin = await makeAdmin();
+    const c = await makeCandidate({ complete: true });
+    await removePhoto(c.id);
+    expect((await getCompleteness(c.id)).result.missing).toEqual(["photo"]);
+    await expect(applyToJob(c, (await makeJob()).id, {})).rejects.toMatchObject({ name: "ProfileIncompleteError" });
+
+    await updateSettings(admin, { publicJobPreview: "on", requireCvForProfile: "on", applicationsOpen: "on" });
+    expect((await getCompleteness(c.id)).result.complete).toBe(true);
+  });
+
+  it("stores only JPEG/PNG, with metadata removed", async () => {
+    const c = await makeCandidate();
+    await expect(uploadPhoto(c.id, { name: "me.pdf", bytes: samplePdf() })).rejects.toMatchObject({ code: "VALIDATION" });
+    await expect(uploadPhoto(c.id, { name: "me.jpg", bytes: solidPng(200, 200) })).rejects.toMatchObject({ code: "VALIDATION" });
+    await expect(uploadPhoto(c.id, { name: "tiny.png", bytes: solidPng(40, 40) })).rejects.toMatchObject({ code: "VALIDATION" });
+    expect(await db.storedFile.count()).toBe(0);
+
+    await uploadPhoto(c.id, { name: "me.jpg", bytes: sampleJpeg(300, 400, { orientation: 3, comment: "secret-comment" }) });
+    const stored = await db.storedFile.findFirstOrThrow({ where: { ownerId: c.id, kind: "PHOTO" } });
+    const { data } = await getFileForDownload(c, stored.id);
+    expect(data.toString("latin1")).not.toContain("secret-comment");
+    expect(data.toString("latin1")).not.toContain("GPS");
+  });
+
+  it("travel with the application and survive a later replacement", async () => {
+    const admin = await makeAdmin();
+    const c = await makeCandidate({ complete: true });
+    const first = await db.storedFile.findFirstOrThrow({ where: { ownerId: c.id, kind: "PHOTO" } });
+    const { applicationId } = await applyToJob(c, (await makeJob()).id, {});
+    expect((await getApplicationForAdmin(admin, applicationId)).photoFile?.id).toBe(first.id);
+
+    await uploadPhoto(c.id, { name: "new.png", bytes: solidPng(220, 220) });
+    expect(await db.storedFile.findUnique({ where: { id: first.id } })).not.toBeNull();
+    expect((await getApplicationForAdmin(admin, applicationId)).photoFile?.id).toBe(first.id);
+    await removePhoto(c.id);
+    expect(await db.storedFile.count({ where: { ownerId: c.id, kind: "PHOTO" } })).toBe(1);
   });
 });
 

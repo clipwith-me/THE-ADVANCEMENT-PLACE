@@ -15,6 +15,7 @@ const bundleInclude = {
     include: {
       skills: { include: { skill: true }, orderBy: { skill: { name: "asc" } } },
       currentCv: { select: { id: true, originalName: true, sizeBytes: true, createdAt: true, mimeType: true } },
+      photo: { select: { id: true, createdAt: true } },
       education: { orderBy: [{ endYear: "desc" }, { createdAt: "desc" }] },
       experience: { orderBy: [{ isCurrent: "desc" }, { startDate: "desc" }] },
     },
@@ -31,7 +32,7 @@ export async function getProfileBundle(userId: string): Promise<ProfileBundle> {
   return user;
 }
 
-export function completenessOf(user: ProfileBundle, requireCv: boolean): CompletenessResult {
+export function completenessOf(user: ProfileBundle, policy: { requireCv: boolean; requirePhoto: boolean }): CompletenessResult {
   const p = user.profile;
   return evaluateProfileCompleteness(
     {
@@ -43,14 +44,18 @@ export function completenessOf(user: ProfileBundle, requireCv: boolean): Complet
       highestQualification: p?.highestQualification,
       skillCount: p?.skills.length ?? 0,
       hasCv: Boolean(p?.currentCvId),
+      hasPhoto: Boolean(p?.photoId),
     },
-    { requireCv },
+    policy,
   );
 }
 
 export async function getCompleteness(userId: string): Promise<{ bundle: ProfileBundle; result: CompletenessResult }> {
   const [bundle, settings] = await Promise.all([getProfileBundle(userId), getSettings()]);
-  return { bundle, result: completenessOf(bundle, settings.requireCvForProfile) };
+  return {
+    bundle,
+    result: completenessOf(bundle, { requireCv: settings.requireCvForProfile, requirePhoto: settings.requirePhotoForProfile }),
+  };
 }
 
 /** Keeps `completedAt` in line with the live rules after every profile change. */
@@ -149,8 +154,38 @@ export async function removeCurrentCv(userId: string): Promise<CompletenessResul
   return syncCompletedAt(userId);
 }
 
+// ─── Passport photograph ─────────────────────────────────────────────────────
+
+/** Uploads a passport photo (metadata stripped) and makes it current. */
+export async function uploadPhoto(userId: string, file: IncomingFile): Promise<CompletenessResult> {
+  await enforce(LIMITS.upload, userId);
+  const profile = await db.candidateProfile.upsert({ where: { userId }, update: {}, create: { userId } });
+  const previousId = profile.photoId;
+  await db.$transaction(async (tx) => {
+    const stored = await storeDocument(tx, { kind: "PHOTO", ownerId: userId, file });
+    await tx.candidateProfile.update({ where: { userId }, data: { photoId: stored.id } });
+    if (previousId) await removeIfUnreferenced(tx, previousId);
+  });
+  await audit({ actorId: userId, action: "photo.upload", entityType: "User", entityId: userId });
+  return syncCompletedAt(userId);
+}
+
+export async function removePhoto(userId: string): Promise<CompletenessResult> {
+  const profile = await db.candidateProfile.findUnique({ where: { userId } });
+  if (profile?.photoId) {
+    const id = profile.photoId;
+    await db.$transaction(async (tx) => {
+      await tx.candidateProfile.update({ where: { userId }, data: { photoId: null } });
+      await removeIfUnreferenced(tx, id);
+    });
+    await audit({ actorId: userId, action: "photo.remove", entityType: "User", entityId: userId });
+  }
+  return syncCompletedAt(userId);
+}
+
+/** Files still attached to an application are kept (applications record what was submitted). */
 async function removeIfUnreferenced(tx: Prisma.TransactionClient, fileId: string) {
-  const refs = await tx.application.count({ where: { cvFileId: fileId } });
+  const refs = await tx.application.count({ where: { OR: [{ cvFileId: fileId }, { photoFileId: fileId }] } });
   if (refs === 0) await deleteStoredFile(tx, fileId);
 }
 

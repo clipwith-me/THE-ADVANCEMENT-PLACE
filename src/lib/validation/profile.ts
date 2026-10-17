@@ -23,7 +23,7 @@ export const coreProfileSchema = z.object({
   phone: phoneField,
   state: z.enum(CANDIDATE_LOCATIONS, { error: "Select your state or location" }),
   city: optionalText(80),
-  headline: requiredText("Professional headline", 3, 140),
+  headline: requiredText("Your experience", 3, 500),
   highestQualification: z.enum(QUALIFICATIONS, { error: "Select your highest qualification" }),
   qualificationDetail: optionalText(140),
   skills: skillsField,

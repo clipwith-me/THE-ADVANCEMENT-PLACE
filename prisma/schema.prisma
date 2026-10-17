@@ -119,6 +119,7 @@ model CandidateProfile {
   linkedinUrl         String?
   about               String?
   currentCvId         String?        @unique
+  photoId             String?        @unique // passport photograph, for identification
   // Set by the server only when the completeness rules pass; the gate always
   // re-evaluates live data, so this is informational (dashboards/metrics).
   completedAt         DateTime?
@@ -127,6 +128,7 @@ model CandidateProfile {
 
   user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   currentCv  StoredFile?       @relation("CurrentCv", fields: [currentCvId], references: [id], onDelete: SetNull)
+  photo      StoredFile?       @relation("Photo", fields: [photoId], references: [id], onDelete: SetNull)
   skills     CandidateSkill[]
   education  EducationRecord[]
   experience WorkExperience[]
@@ -185,6 +187,7 @@ model WorkExperience {
 
 enum FileKind {
   CV
+  PHOTO
   ENQUIRY_ATTACHMENT
 }
 
@@ -201,7 +204,9 @@ model StoredFile {
 
   owner             User?             @relation("FileOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   currentCvOf       CandidateProfile? @relation("CurrentCv")
-  applications      Application[]
+  photoOf           CandidateProfile? @relation("Photo")
+  applications      Application[]     @relation("ApplicationCv")
+  photoApplications Application[]     @relation("ApplicationPhoto")
   enquiries         Enquiry[]
 
   @@index([ownerId, kind])
@@ -313,6 +318,7 @@ model Application {
   jobId           String
   candidateId     String
   cvFileId        String?
+  photoFileId     String? // passport photo as it was when the candidate applied
   status          ApplicationStatus @default(SUBMITTED)
   coverMessage    String?
   // Candidate details as submitted, so later profile edits don't rewrite history.
@@ -322,7 +328,8 @@ model Application {
 
   job       Job                      @relation(fields: [jobId], references: [id], onDelete: Restrict)
   candidate User                     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  cvFile    StoredFile?              @relation(fields: [cvFileId], references: [id], onDelete: SetNull)
+  cvFile    StoredFile?              @relation("ApplicationCv", fields: [cvFileId], references: [id], onDelete: SetNull)
+  photoFile StoredFile?              @relation("ApplicationPhoto", fields: [photoFileId], references: [id], onDelete: SetNull)
   events    ApplicationStatusEvent[]
   notes     ApplicationNote[]
 
@@ -428,6 +435,7 @@ model SiteSettings {
   id                   Int      @id @default(1)
   publicJobPreview     Boolean  @default(true)
   requireCvForProfile  Boolean  @default(true)
+  requirePhotoForProfile Boolean @default(true)
   applicationsOpen     Boolean  @default(true)
   announcement         String?
   updatedAt            DateTime @updatedAt

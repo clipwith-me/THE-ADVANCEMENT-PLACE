@@ -9,6 +9,7 @@ import { canManageSettings, type Actor } from "../auth/policies";
 export interface Settings {
   publicJobPreview: boolean;
   requireCvForProfile: boolean;
+  requirePhotoForProfile: boolean;
   applicationsOpen: boolean;
   announcement: string | null;
 }
@@ -23,6 +24,7 @@ export const getSettings = cache(async (): Promise<Settings> => {
   return {
     publicJobPreview: row.publicJobPreview,
     requireCvForProfile: row.requireCvForProfile,
+    requirePhotoForProfile: row.requirePhotoForProfile,
     applicationsOpen: row.applicationsOpen,
     announcement: row.announcement,
   };
@@ -36,6 +38,7 @@ const checkbox = z
 export const settingsSchema = z.object({
   publicJobPreview: checkbox,
   requireCvForProfile: checkbox,
+  requirePhotoForProfile: checkbox,
   applicationsOpen: checkbox,
   announcement: optionalText(240),
 });
@@ -51,5 +54,11 @@ export async function updateSettings(actor: Actor, raw: Record<string, string>):
     await audit({ actorId: actor.id, action: "settings.update", entityType: "SiteSettings", entityId: "1", metadata: data }, tx);
   });
   const row = await db.siteSettings.findUniqueOrThrow({ where: { id: 1 } });
-  return { publicJobPreview: row.publicJobPreview, requireCvForProfile: row.requireCvForProfile, applicationsOpen: row.applicationsOpen, announcement: row.announcement };
+  return {
+    publicJobPreview: row.publicJobPreview,
+    requireCvForProfile: row.requireCvForProfile,
+    requirePhotoForProfile: row.requirePhotoForProfile,
+    applicationsOpen: row.applicationsOpen,
+    announcement: row.announcement,
+  };
 }

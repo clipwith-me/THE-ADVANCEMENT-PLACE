@@ -1,7 +1,7 @@
 # Product decisions (for client confirmation)
 
 1. **Job board gate vs SEO.** The client requires a complete profile before accessing the job board; the brief also asks for search-engine-visible job pages. Resolution: the searchable board (`/jobs`) requires a signed-in candidate with a complete profile; individual job adverts are public and indexable (applying still requires a complete profile). Admin › Settings › "Show job adverts publicly" turns adverts private too (they then leave the sitemap and are noindexed).
-2. **Profile-completion policy.** Required: full name, email, phone, state, headline/career interest, highest qualification (any level — SSCE, OND, HND, degree, etc.), at least one skill, and a CV (toggleable). NYSC status is optional and never blocks registration or applying.
+2. **Profile-completion policy.** Required: full name, email, phone, state, "Your experience" (a short summary; stored as `headline`), highest qualification (any level — SSCE, OND, HND, degree, etc.), at least one skill, a passport photograph (toggleable) and a CV (toggleable). NYSC status is optional and never blocks registration or applying.
 3. **One application per vacancy**, enforced by the database. A withdrawn application can't be resubmitted for the same vacancy. Change on request.
 4. **Statuses**: Submitted, Under review, Shortlisted, Interview, Successful, Not progressed (stored as UNSUCCESSFUL), Withdrawn (candidate only). Candidates see status history, not internal notes.
 5. **Deadlines** are dates; applications close at the end of that day, Lagos time. Jobs past their deadline disappear from the board automatically.
@@ -10,3 +10,5 @@
 8. **Freelance/outsourcing** is an enquiry service only — no bidding, contracts or payments, and the site says so.
 9. **No fabricated content**: no statistics, testimonials, partner logos, staff photos, fees or employment guarantees. The trust section uses only verified facts (office address, hours, data handling).
 10. **Header logo**: supplied mark + business name in text (lockup lettering is illegible at 40 px). Full supplied lockup is used on auth pages, About, and Open Graph.
+11. **Passport photograph** (client request, Oct 2026) so staff can identify applicants. JPEG/PNG only, at least 150×150 px; GPS/device metadata (EXIF, XMP, comments, PNG text chunks) is stripped on upload, keeping only the orientation flag. Photos are private (owner + staff), are never shown publicly, travel with each application like the CV, and follow the same retention rule. Viewing a photo is not audit-logged (it appears in lists); CV downloads still are. Turn the requirement off in Admin › Settings.
+12. **Address** follows the client's wording: Metroeyes Building, opposite Access Bank, Jide Jones Road, Oke-Ilewo, Abeokuta, Ogun State. The previous postal code was dropped because the client's address doesn't include one.

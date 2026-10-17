@@ -15,10 +15,10 @@ Day to day, staff are added and removed in **Admin › Staff** (invite by email;
 ## Day-to-day
 
 - **Jobs**: Admin › Jobs › New job → *Save as draft* → *Preview* → *Publish*. Close a job to stop applications; archive to hide it; reopen returns it to draft. Only tick "Show the employer's name" when the employer authorises it, and only enter salaries the employer has confirmed.
-- **Applications**: filter by status or job; open one to see the details as submitted, download the CV, change status (optionally emailing the candidate) and add internal notes (never shown to candidates).
+- **Applications**: filter by status or job; open one to see the details as submitted, see the passport photo submitted with it, download the CV, change status (optionally emailing the candidate) and add internal notes (never shown to candidates).
 - **Candidates**: search, view profiles, suspend/reactivate (preferred over deletion). Candidates delete their own accounts under Account settings.
 - **Enquiries**: three inboxes (career, outsourcing, contact) with New / In progress / Resolved and internal notes. Each enquiry shows a warning if its email notification wasn't delivered.
-- **Settings**: public job adverts on/off, CV required for a complete profile, pause applications, announcement banner.
+- **Settings**: public job adverts on/off, CV and passport photo required for a complete profile, pause applications, announcement banner.
 
 ## Demo data — remove before launch
 
@@ -31,7 +31,7 @@ npm run db:demo:remove -- --yes # deletes demo jobs and any applications to them
 
 ## Data retention
 
-`npm run retention:purge` (dry run) / `-- --yes` deletes CVs that are only attached to unsuccessful/withdrawn applications older than `RETENTION_DAYS` (default 365), attachments of enquiries resolved that long ago, expired sessions and spent tokens. Agree the period with the client's legal adviser and schedule it monthly.
+`npm run retention:purge` (dry run) / `-- --yes` deletes CVs and passport photos that are only attached to unsuccessful/withdrawn applications older than `RETENTION_DAYS` (default 365), attachments of enquiries resolved that long ago, expired sessions and spent tokens. Agree the period with the client's legal adviser and schedule it monthly.
 
 ## Still needed from the client
 

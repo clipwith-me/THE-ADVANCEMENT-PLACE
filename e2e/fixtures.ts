@@ -1,4 +1,5 @@
 import { expect, type Page } from "@playwright/test";
+import { placeholderPhoto } from "../tests/image-fixtures";
 
 export const ADMIN = { email: "admin@e2e.test", password: "E2E-admin-password-2026" };
 export const PASSWORD = "E2e-candidate-pass-1";
@@ -24,12 +25,15 @@ export async function register(page: Page, email: string, name = "Ada Okafor", n
 export async function completeProfile(page: Page) {
   await page.getByLabel("Phone number").fill("0803 123 4567");
   await page.getByLabel("State of residence").selectOption("Ogun");
-  await page.getByLabel("Professional headline or career interest").fill("Accounting graduate");
+  await page.getByLabel("Your experience").fill("Accounting graduate");
   await page.getByLabel("Highest qualification").selectOption("HND");
   await page.getByLabel("Skills").fill("Bookkeeping, Excel");
   // NYSC status deliberately left empty: it must be optional.
   await page.getByRole("button", { name: "Save details" }).click();
-  await expect(page.getByText(/Upload your CV to finish your profile/)).toBeVisible();
+  await expect(page.getByText(/Upload your passport photograph and CV to finish your profile/)).toBeVisible();
+  await page.getByLabel("Upload your passport photograph").setInputFiles({ name: "Ada photo.png", mimeType: "image/png", buffer: placeholderPhoto() });
+  await page.getByRole("button", { name: "Upload photo" }).click();
+  await expect(page.getByRole("img", { name: /^Passport photograph of / })).toBeVisible();
   await page.getByLabel("Upload your CV").setInputFiles({ name: "Ada CV.pdf", mimeType: "application/pdf", buffer: minimalPdf() });
   await page.getByRole("button", { name: "Upload CV" }).click();
 }

@@ -73,7 +73,7 @@ export async function listCandidates(actor: Actor, opts: { q?: string; complete?
         email: true,
         status: true,
         createdAt: true,
-        profile: { select: { headline: true, state: true, completedAt: true, highestQualification: true } },
+        profile: { select: { headline: true, state: true, completedAt: true, highestQualification: true, photoId: true } },
         _count: { select: { applications: true } },
       },
     }),
@@ -97,6 +97,7 @@ export async function getCandidate(actor: Actor, id: string) {
         include: {
           skills: { include: { skill: true } },
           currentCv: { select: { id: true, originalName: true, sizeBytes: true, createdAt: true } },
+          photo: { select: { id: true } },
           education: true,
           experience: { orderBy: { startDate: "desc" } },
         },

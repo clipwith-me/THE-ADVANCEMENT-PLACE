@@ -3,6 +3,7 @@
  * business purpose, after RETENTION_DAYS (default 365):
  *   - CVs attached only to unsuccessful/withdrawn applications last updated
  *     before the cut-off (and not the candidate's current CV)
+ *   - passport photos under the same rule (and not the candidate's current photo)
  *   - attachments of enquiries resolved before the cut-off
  *   - expired sessions and used/expired auth tokens
  *
@@ -25,14 +26,24 @@ async function main() {
     },
     select: { id: true, storageKey: true },
   });
+  const candidatePhotos = await db.storedFile.findMany({
+    where: {
+      kind: "PHOTO",
+      photoOf: null,
+      photoApplications: { some: {}, every: { status: { in: ["UNSUCCESSFUL", "WITHDRAWN"] }, updatedAt: { lt: cutoff } } },
+    },
+    select: { id: true, storageKey: true },
+  });
   const enquiryFiles = await db.storedFile.findMany({
     where: { kind: "ENQUIRY_ATTACHMENT", enquiries: { every: { status: "RESOLVED", updatedAt: { lt: cutoff } } } },
     select: { id: true, storageKey: true },
   });
-  const files = [...candidateCvs, ...enquiryFiles];
+  const files = [...candidateCvs, ...candidatePhotos, ...enquiryFiles];
 
   console.log(`Retention cut-off: ${cutoff.toISOString()} (${env().RETENTION_DAYS} days)`);
-  console.log(`CVs eligible for deletion: ${candidateCvs.length}; enquiry attachments: ${enquiryFiles.length}`);
+  console.log(
+    `CVs eligible for deletion: ${candidateCvs.length}; photos: ${candidatePhotos.length}; enquiry attachments: ${enquiryFiles.length}`,
+  );
   if (!apply) {
     console.log("Dry run. Re-run with --yes to delete.");
     return;

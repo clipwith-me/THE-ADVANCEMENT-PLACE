@@ -14,28 +14,33 @@ export interface CompletenessInput {
   highestQualification: string | null | undefined;
   skillCount: number;
   hasCv: boolean;
+  hasPhoto: boolean;
 }
 
 export interface CompletenessPolicy {
   requireCv: boolean;
+  requirePhoto: boolean;
 }
 
-export type RequirementKey = "name" | "email" | "phone" | "location" | "headline" | "qualification" | "skills" | "cv";
+export type RequirementKey = "name" | "email" | "phone" | "location" | "headline" | "qualification" | "skills" | "photo" | "cv";
 
 export const REQUIREMENT_LABEL: Record<RequirementKey, string> = {
   name: "Full name",
   email: "Email address",
   phone: "Phone number",
   location: "Location (state)",
-  headline: "Professional headline or career interest",
+  headline: "Your experience",
   qualification: "Highest qualification",
   skills: "At least one skill",
+  photo: "Passport photograph",
   cv: "CV / résumé (PDF or DOCX)",
 };
 
 export interface CompletenessResult {
   complete: boolean;
   missing: RequirementKey[];
+  /** The requirements that apply under the current policy, in display order. */
+  checked: RequirementKey[];
   completed: number;
   total: number;
   percent: number;
@@ -53,10 +58,11 @@ export function evaluateProfileCompleteness(input: CompletenessInput, policy: Co
     ["qualification", filled(input.highestQualification)],
     ["skills", input.skillCount > 0],
   ];
+  if (policy.requirePhoto) checks.push(["photo", input.hasPhoto]);
   if (policy.requireCv) checks.push(["cv", input.hasCv]);
 
   const missing = checks.filter(([, ok]) => !ok).map(([k]) => k);
   const total = checks.length;
   const completed = total - missing.length;
-  return { complete: missing.length === 0, missing, completed, total, percent: Math.round((completed / total) * 100) };
+  return { complete: missing.length === 0, missing, checked: checks.map(([k]) => k), completed, total, percent: Math.round((completed / total) * 100) };
 }

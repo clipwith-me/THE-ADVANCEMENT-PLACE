@@ -1,6 +1,8 @@
 import { Briefcase, GraduationCap, Trash2 } from "lucide-react";
 import { CompletenessCard, CoreProfileFields, CurrentCv, qualificationOptions } from "@/components/account/profile-parts";
 import { CvUploadForm } from "@/components/account/cv-upload-form";
+import { PhotoUploadForm } from "@/components/account/photo-upload-form";
+import { Avatar } from "@/components/ui/avatar";
 import { ActionForm, SubmitButton } from "@/components/forms/action-form";
 import { CheckboxField, SelectField, TextAreaField, TextField } from "@/components/forms/fields";
 import { ConfirmAction } from "@/components/forms/confirm-action";
@@ -14,6 +16,7 @@ import {
   addEducationAction,
   addExperienceAction,
   removeCvAction,
+  removePhotoAction,
   removeEducationAction,
   removeExperienceAction,
   saveFullProfileAction,
@@ -33,6 +36,39 @@ export default async function ProfilePage() {
       <PageHeader title="Profile & CV" description="Keep your profile up to date — it's shared with our recruitment team when you apply." />
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]">
         <div className="min-w-0 space-y-6">
+          <section className="card p-5 sm:p-6" aria-labelledby="photo-heading">
+            <h2 id="photo-heading" className="text-lg font-semibold">
+              Passport photograph
+            </h2>
+            <p className="mt-1 mb-5 text-sm text-ink-600">
+              Helps our recruitment team identify you. Only you and our staff can see it. Applications keep the photo that was current
+              when you applied.
+            </p>
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+              <div className="space-y-3">
+                <Avatar photoId={p.photo?.id} name={bundle.name} size="xl" />
+                {p.photo && (
+                  <ConfirmAction
+                    action={removePhotoAction}
+                    trigger={
+                      <>
+                        <Trash2 aria-hidden className="size-4" /> Remove photo
+                      </>
+                    }
+                    triggerVariant="ghost"
+                    title="Remove your photo?"
+                    body="Your profile will be incomplete until you upload a new photo, and you won't be able to apply for jobs."
+                    confirmLabel="Remove photo"
+                    variant="danger"
+                  />
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <PhotoUploadForm hasPhoto={Boolean(p.photo)} maxMb={env().MAX_UPLOAD_MB} />
+              </div>
+            </div>
+          </section>
+
           <section className="card p-5 sm:p-6" aria-labelledby="cv-heading">
             <h2 id="cv-heading" className="text-lg font-semibold">
               CV / résumé

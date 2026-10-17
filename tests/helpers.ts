@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
 import { testOutbox } from "@/server/email/mailer";
 import type { Actor } from "@/server/auth/policies";
+import { placeholderPhoto } from "./image-fixtures";
 
 /** Empties every table between tests (fast, keeps the schema). */
 export async function resetDb() {
@@ -38,8 +39,9 @@ export async function makeCandidate(opts: { complete?: boolean; name?: string } 
     },
   });
   if (opts.complete) {
-    const { saveProfile, uploadCv } = await import("@/server/services/profile-service");
+    const { saveProfile, uploadCv, uploadPhoto } = await import("@/server/services/profile-service");
     await saveProfile(u.id, completeProfileForm(opts.name ?? "Ada Candidate"), "core");
+    await uploadPhoto(u.id, { name: "photo.png", bytes: placeholderPhoto() });
     await uploadCv(u.id, { name: "cv.pdf", bytes: samplePdf() });
   }
   return { id: u.id, role: u.role, email: u.email };

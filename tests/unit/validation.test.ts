@@ -1,12 +1,57 @@
 import { describe, expect, it } from "vitest";
-import { validateDocument, sanitizeFilename } from "@/server/storage/file-validation";
+import { validateDocument, validateImage, sanitizeFilename } from "@/server/storage/file-validation";
 import { coreProfileSchema, fullProfileSchema } from "@/lib/validation/profile";
 import { jobSchema, parseJobSearch } from "@/lib/validation/job";
 import { registerSchema } from "@/lib/validation/auth";
 import { contactSchema } from "@/lib/validation/enquiry";
 import { samplePdf, sampleDocx } from "../helpers";
+import { pngChunk, sampleJpeg, solidPng } from "../image-fixtures";
 
 const MB = 1024 * 1024;
+
+describe("passport photo validation", () => {
+  it("accepts JPEG and PNG by content and reports dimensions", () => {
+    expect(validateImage(sampleJpeg(300, 400), "me.JPEG", 5 * MB)).toMatchObject({ ok: true, ext: "jpg", mimeType: "image/jpeg", width: 300, height: 400 });
+    expect(validateImage(solidPng(200, 240), "me.png", 5 * MB)).toMatchObject({ ok: true, ext: "png", mimeType: "image/png", width: 200, height: 240 });
+  });
+
+  it("rejects other types, disguised files, empty and oversized files", () => {
+    expect(validateImage(samplePdf(), "me.jpg", 5 * MB).ok).toBe(false);
+    expect(validateImage(solidPng(200, 200), "me.jpg", 5 * MB).ok).toBe(false);
+    expect(validateImage(sampleJpeg(), "me.gif", 5 * MB).ok).toBe(false);
+    expect(validateImage(sampleJpeg(), "me.svg", 5 * MB).ok).toBe(false);
+    expect(validateImage(Buffer.alloc(0), "me.jpg", 5 * MB).ok).toBe(false);
+    expect(validateImage(sampleJpeg(), "me.jpg", 10).ok).toBe(false);
+    expect(validateImage(sampleJpeg().subarray(0, 30), "me.jpg", 5 * MB).ok).toBe(false);
+  });
+
+  it("rejects photos too small to identify anyone", () => {
+    expect(validateImage(sampleJpeg(100, 100), "me.jpg", 5 * MB).ok).toBe(false);
+    expect(validateImage(solidPng(149, 300), "me.png", 5 * MB).ok).toBe(false);
+  });
+
+  it("strips location/device metadata from JPEGs but keeps orientation", () => {
+    const src = sampleJpeg(300, 400, { orientation: 6, xmp: "<gps>secret-xmp</gps>", comment: "secret-comment" });
+    const r = validateImage(src, "me.jpg", 5 * MB);
+    if (!r.ok) throw new Error(r.error);
+    const text = r.bytes.toString("latin1");
+    expect(text).not.toContain("GPS");
+    expect(text).not.toContain("secret-xmp");
+    expect(text).not.toContain("secret-comment");
+    expect(text).toContain("Exif");
+    // Orientation 6 survives so the photo still displays upright.
+    expect(r.bytes.includes(Buffer.from([0x01, 0x12, 0x00, 0x03, 0x00, 0x00, 0x00, 0x01, 0x00, 0x06]))).toBe(true);
+    expect(validateImage(sampleJpeg(300, 400, { orientation: 1 }), "me.jpg", 5 * MB)).toMatchObject({ ok: true });
+  });
+
+  it("strips text and EXIF chunks from PNGs", () => {
+    const src = solidPng(200, 200, undefined, [pngChunk("tEXt", Buffer.from("Comment\0secret-text", "latin1")), pngChunk("eXIf", Buffer.from("MM-secret-exif"))]);
+    const r = validateImage(src, "me.png", 5 * MB);
+    if (!r.ok) throw new Error(r.error);
+    expect(r.bytes.toString("latin1")).not.toMatch(/secret-(text|exif)/);
+    expect(r.bytes.length).toBeLessThan(src.length);
+  });
+});
 
 describe("document validation", () => {
   it("accepts real PDF and DOCX content", () => {

@@ -39,6 +39,12 @@ export default async function AdminSettingsPage() {
               hint="When on, candidates must upload a CV before they can browse the job board and apply."
             />
             <CheckboxField
+              name="requirePhotoForProfile"
+              defaultChecked={s.requirePhotoForProfile}
+              label="Require a passport photograph for a complete profile"
+              hint="When on, candidates must upload a passport photo before they can browse the job board and apply."
+            />
+            <CheckboxField
               name="applicationsOpen"
               defaultChecked={s.applicationsOpen}
               label="Accept applications"

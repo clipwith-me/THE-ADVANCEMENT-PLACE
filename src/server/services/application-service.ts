@@ -87,6 +87,7 @@ export async function applyToJob(actor: Actor, jobId: string, raw: Record<string
           jobId,
           candidateId: actor.id,
           cvFileId: p.currentCvId,
+          photoFileId: p.photoId,
           coverMessage: input.coverMessage ?? null,
           profileSnapshot: snapshot,
           events: { create: { toStatus: "SUBMITTED", changedById: actor.id } },
@@ -120,6 +121,7 @@ const candidateApplicationSelect = {
   coverMessage: true,
   candidateId: true,
   cvFile: { select: { id: true, originalName: true } },
+  photoFile: { select: { id: true } },
   job: { select: { id: true, slug: true, title: true, state: true, city: true, status: true, deadline: true, publishedAt: true, employmentType: true, isDemo: true } },
   // Status history is shared; internal notes are deliberately not selected.
   events: { select: { toStatus: true, createdAt: true }, orderBy: { createdAt: "asc" as const } },
@@ -197,6 +199,7 @@ export async function listApplicationsForAdmin(
         candidate: { select: { id: true, name: true, email: true } },
         job: { select: { id: true, title: true } },
         cvFile: { select: { id: true } },
+        photoFile: { select: { id: true } },
       },
     }),
   ]);
@@ -211,6 +214,7 @@ export async function getApplicationForAdmin(actor: Actor, id: string) {
       job: { select: { id: true, title: true, slug: true, status: true } },
       candidate: { select: { id: true, name: true, email: true, createdAt: true } },
       cvFile: { select: { id: true, originalName: true, sizeBytes: true } },
+      photoFile: { select: { id: true } },
       events: { orderBy: { createdAt: "asc" }, include: { changedBy: { select: { name: true, role: true } } } },
       notes: { orderBy: { createdAt: "desc" }, include: { author: { select: { name: true } } } },
     },

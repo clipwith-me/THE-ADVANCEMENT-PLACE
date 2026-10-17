@@ -17,29 +17,39 @@ const full = {
   highestQualification: "HND",
   skillCount: 2,
   hasCv: true,
+  hasPhoto: true,
 };
+const policy = { requireCv: true, requirePhoto: true };
 
 describe("profile completeness", () => {
   it("is complete when every required field is present — NYSC is not required", () => {
-    const r = evaluateProfileCompleteness(full, { requireCv: true });
+    const r = evaluateProfileCompleteness(full, policy);
     expect(r.complete).toBe(true);
     expect(r.percent).toBe(100);
   });
 
   it("lists exactly what is missing", () => {
-    const r = evaluateProfileCompleteness({ ...full, phone: " ", skillCount: 0, hasCv: false }, { requireCv: true });
+    const r = evaluateProfileCompleteness({ ...full, phone: " ", skillCount: 0, hasCv: false }, policy);
     expect(r.complete).toBe(false);
     expect(r.missing).toEqual(["phone", "skills", "cv"]);
   });
 
   it("respects the CV policy toggle", () => {
-    expect(evaluateProfileCompleteness({ ...full, hasCv: false }, { requireCv: false }).complete).toBe(true);
-    expect(evaluateProfileCompleteness({ ...full, hasCv: false }, { requireCv: true }).complete).toBe(false);
+    expect(evaluateProfileCompleteness({ ...full, hasCv: false }, { ...policy, requireCv: false }).complete).toBe(true);
+    expect(evaluateProfileCompleteness({ ...full, hasCv: false }, policy).complete).toBe(false);
+  });
+
+  it("requires a passport photo unless the policy turns it off", () => {
+    const r = evaluateProfileCompleteness({ ...full, hasPhoto: false }, policy);
+    expect(r.complete).toBe(false);
+    expect(r.missing).toEqual(["photo"]);
+    expect(evaluateProfileCompleteness({ ...full, hasPhoto: false }, { ...policy, requirePhoto: false }).complete).toBe(true);
+    expect(evaluateProfileCompleteness(full, { ...policy, requirePhoto: false }).checked).not.toContain("photo");
   });
 
   it("accepts any qualification, not only a bachelor's degree", () => {
     for (const q of ["OND", "HND", "SSCE", "OTHER"]) {
-      expect(evaluateProfileCompleteness({ ...full, highestQualification: q }, { requireCv: true }).complete).toBe(true);
+      expect(evaluateProfileCompleteness({ ...full, highestQualification: q }, policy).complete).toBe(true);
     }
   });
 });

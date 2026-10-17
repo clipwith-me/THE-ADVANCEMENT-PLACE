@@ -7,7 +7,7 @@ import { sha256Hex } from "@/lib/crypto";
 import { notFound, validationError } from "@/lib/errors";
 import { canDownloadFile, type Actor } from "../auth/policies";
 import { databaseStorage } from "../storage/storage";
-import { sanitizeFilename, validateDocument } from "../storage/file-validation";
+import { sanitizeFilename, sanitizeImageName, validateDocument, validateImage } from "../storage/file-validation";
 
 export const maxUploadBytes = () => Math.floor(env().MAX_UPLOAD_MB * 1024 * 1024);
 
@@ -36,18 +36,32 @@ export async function storeDocument(
   tx: Prisma.TransactionClient,
   input: { kind: FileKind; ownerId: string | null; file: IncomingFile },
 ) {
-  const result = validateDocument(input.file.bytes, input.file.name, maxUploadBytes());
-  if (!result.ok) throw validationError("Upload failed", { file: [result.error] });
+  let bytes: Buffer;
+  let mimeType: string;
+  let originalName: string;
+  if (input.kind === "PHOTO") {
+    // Photos are re-written without metadata (location, device) before storage.
+    const result = validateImage(input.file.bytes, input.file.name, maxUploadBytes());
+    if (!result.ok) throw validationError("Upload failed", { file: [result.error] });
+    ({ bytes, mimeType } = result);
+    originalName = sanitizeImageName(input.file.name, result.ext);
+  } else {
+    const result = validateDocument(input.file.bytes, input.file.name, maxUploadBytes());
+    if (!result.ok) throw validationError("Upload failed", { file: [result.error] });
+    bytes = input.file.bytes;
+    mimeType = result.mimeType;
+    originalName = sanitizeFilename(input.file.name, result.ext);
+  }
   const storageKey = `${input.kind.toLowerCase()}/${randomUUID()}`;
-  await databaseStorage(tx).put(storageKey, input.file.bytes);
+  await databaseStorage(tx).put(storageKey, bytes);
   return tx.storedFile.create({
     data: {
       kind: input.kind,
       ownerId: input.ownerId,
-      originalName: sanitizeFilename(input.file.name, result.ext),
-      mimeType: result.mimeType,
-      sizeBytes: input.file.bytes.length,
-      sha256: sha256Hex(input.file.bytes),
+      originalName,
+      mimeType,
+      sizeBytes: bytes.length,
+      sha256: sha256Hex(bytes),
       storageKey,
     },
   });

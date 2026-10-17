@@ -46,6 +46,10 @@ test("admin signs in, creates and publishes a job, and reviews applications", as
   await page.getByRole("link", { name: "Ada Okafor" }).first().click();
   await expect(page.getByText("Candidate details (as submitted)")).toBeVisible();
   await expect(page.getByText("Not provided")).toBeVisible(); // NYSC left empty
+  // The passport photo submitted with the application loads for staff.
+  const photo = page.getByRole("img", { name: "Passport photograph of Ada Okafor" });
+  await expect(photo).toBeVisible();
+  expect(await photo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth)).toBe(200);
   await page.locator("#field-status").selectOption("SHORTLISTED");
   await page.getByRole("button", { name: "Update status" }).click();
   await expect(page.getByText(/Status updated/)).toBeVisible();

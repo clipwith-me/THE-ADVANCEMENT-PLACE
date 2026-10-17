@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Avatar } from "@/components/ui/avatar";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Ban, Download, RotateCcw } from "lucide-react";
 import { ConfirmAction } from "@/components/forms/confirm-action";
@@ -33,7 +34,7 @@ export default async function CandidatePage({ params }: { params: Promise<{ id: 
         title={c.name}
         description={
           <span className="flex flex-wrap items-center gap-2">
-            {p?.headline ?? "No headline yet"} {c.status === "SUSPENDED" && <RejectedBadge />}
+            {p?.headline ?? "Experience not added yet"} {c.status === "SUSPENDED" && <RejectedBadge />}
           </span>
         }
         actions={
@@ -61,9 +62,13 @@ export default async function CandidatePage({ params }: { params: Promise<{ id: 
       />
       <div className="grid gap-6 xl:grid-cols-2">
         <section className="card p-5 sm:p-6" aria-labelledby="profile-heading">
-          <h2 id="profile-heading" className="text-base font-semibold">
-            Profile
-          </h2>
+          <div className="flex items-center gap-4">
+            <Avatar photoId={p?.photo?.id} name={c.name} size="xl" />
+            <h2 id="profile-heading" className="text-base font-semibold">
+              Profile
+              {!p?.photo && <span className="mt-1 block text-sm font-normal text-ink-600">No passport photograph uploaded</span>}
+            </h2>
+          </div>
           <DefinitionList
             items={[
               ["Email", <a key="e" className="link" href={`mailto:${c.email}`}>{c.email}</a>],

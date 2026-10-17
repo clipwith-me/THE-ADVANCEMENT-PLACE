@@ -288,7 +288,8 @@ export function FileField({
   required,
   optionalLabel,
   className,
-}: BaseProps) {
+  accept = ".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+}: BaseProps & { accept?: string }) {
   const state = useFormState();
   const errors = state.fieldErrors?.[name];
   const id = `field-${name}`;
@@ -301,7 +302,7 @@ export function FileField({
         name={name}
         type="file"
         required={required}
-        accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        accept={accept}
         aria-invalid={errors?.length ? true : undefined}
         aria-describedby={describedBy(id, hint, errors)}
         className={`block w-full rounded-md border bg-white text-sm text-ink-700 file:mr-3 file:min-h-11 file:cursor-pointer file:border-0 file:border-r file:border-ink-300 file:bg-ink-100 file:px-4 file:text-sm file:font-semibold file:text-ink-900 hover:file:bg-ink-200 ${errors?.length ? errBorder : okBorder}`}
