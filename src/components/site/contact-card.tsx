@@ -1,5 +1,6 @@
 import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { ADDRESS_ONE_LINE, BUSINESS, mailtoUrl, telUrl, whatsappUrl } from "@/lib/business";
+import { SocialIcon } from "../ui/social-icons";
 
 /** Official contact channels — rendered from the single BUSINESS source. */
 export function ContactCard({ subject, title = "Contact us directly" }: { subject?: string; title?: string }) {
@@ -46,6 +47,18 @@ export function ContactCard({ subject, title = "Contact us directly" }: { subjec
             </a>
           </span>
         </li>
+        {BUSINESS.social.map((s) => (
+          <li key={s.network}>
+            <a href={s.url} target="_blank" rel="noopener noreferrer" className="group flex gap-3">
+              <SocialIcon network={s.network} className="mt-0.5 size-5 shrink-0 text-brand-700" />
+              <span>
+                <span className="block font-medium text-ink-900">{s.label}</span>
+                <span className="text-ink-700 group-hover:text-brand-700 group-hover:underline">{s.handle}</span>
+                <span className="sr-only"> (opens in a new tab)</span>
+              </span>
+            </a>
+          </li>
+        ))}
         <li className="flex gap-3">
           <Clock aria-hidden className="mt-0.5 size-5 shrink-0 text-brand-700" />
           <span>

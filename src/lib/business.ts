@@ -20,6 +20,11 @@ export const BUSINESS = {
     state: "Ogun State",
     country: "Nigeria",
   },
+  // Official pages supplied by the client (18 Oct 2026); tracking parameters removed.
+  social: [
+    { network: "instagram", label: "Instagram", handle: "@theadvancement_place", url: "https://www.instagram.com/theadvancement_place/" },
+    { network: "facebook", label: "Facebook", handle: "The Advancement Place", url: "https://www.facebook.com/profile.php?id=61558423988881" },
+  ],
   hours: [
     { days: "Monday – Friday", time: "8:00 AM – 5:00 PM" },
     { days: "Saturday – Sunday", time: "Closed" },
