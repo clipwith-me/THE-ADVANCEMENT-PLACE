@@ -8,7 +8,7 @@ export default async function AccountLayout({ children }: { children: React.Reac
   const user = await requireCandidate();
   return (
     <div className="bg-ink-50/60">
-      <div className="container-page grid gap-6 py-6 sm:py-10 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-10">
+      <div className="container-page grid grid-cols-1 gap-6 py-6 sm:py-10 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-10">
         <AccountNav name={user.name} email={user.email} />
         <div className="min-w-0">{children}</div>
       </div>

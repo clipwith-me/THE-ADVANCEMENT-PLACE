@@ -49,7 +49,10 @@ export async function logout(page: Page) {
   await page.context().clearCookies();
 }
 
-/** True when the document is wider than the viewport (horizontal scroll). */
+/** True when the page is wider than the device (horizontal scroll or zoomed-out layout). */
 export async function hasHorizontalOverflow(page: Page) {
-  return page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+  // Compare with the configured width: mobile browsers widen innerWidth to fit
+  // overflowing content (zooming the page out), which would hide the problem.
+  const width = page.viewportSize()?.width ?? 0;
+  return page.evaluate((w) => Math.max(document.documentElement.scrollWidth, window.innerWidth) > w + 1, width);
 }

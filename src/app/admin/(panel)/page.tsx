@@ -80,17 +80,20 @@ export default async function AdminOverview() {
                 ))}
               </div>
               {/* Accessible equivalent of the chart. */}
-              <table className="sr-only">
-                <caption>Applications per week, last eight weeks</caption>
-                <tbody>
-                  {m.weekly.map((w) => (
-                    <tr key={w.start.toISOString()}>
-                      <th scope="row">Week of {formatDate(w.start)}</th>
-                      <td>{w.count}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              {/* Wrapped: tables ignore the sr-only clip and would widen the page. */}
+              <div className="sr-only">
+                <table>
+                  <caption>Applications per week, last eight weeks</caption>
+                  <tbody>
+                    {m.weekly.map((w) => (
+                      <tr key={w.start.toISOString()}>
+                        <th scope="row">Week of {formatDate(w.start)}</th>
+                        <td>{w.count}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </figure>
           )}
         </section>

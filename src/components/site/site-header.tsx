@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LayoutDashboard, LogIn } from "lucide-react";
+import { FileUser, LayoutDashboard, LogIn } from "lucide-react";
 import { getCurrentUser } from "@/server/auth/current";
 import { getSettings } from "@/server/services/settings-service";
 import { ButtonLink } from "../ui/button";
@@ -38,9 +38,19 @@ export async function SiteHeader() {
           </nav>
           <div className="hidden items-center gap-2 lg:flex">
             {dashboard ? (
-              <ButtonLink href={dashboard} variant="dark">
-                <LayoutDashboard aria-hidden className="size-4" /> {user?.role === "ADMIN" ? "Admin" : "My dashboard"}
-              </ButtonLink>
+              <>
+                {user?.role !== "ADMIN" && (
+                  <Link
+                    href="/account/profile"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 text-sm font-semibold text-ink-800 hover:bg-ink-100"
+                  >
+                    <FileUser aria-hidden className="size-4" /> My profile
+                  </Link>
+                )}
+                <ButtonLink href={dashboard} variant="dark">
+                  <LayoutDashboard aria-hidden className="size-4" /> {user?.role === "ADMIN" ? "Admin" : "My dashboard"}
+                </ButtonLink>
+              </>
             ) : (
               <>
                 <Link href="/login" className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 text-sm font-semibold text-ink-800 hover:bg-ink-100">
