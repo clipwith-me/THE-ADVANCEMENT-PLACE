@@ -22,6 +22,7 @@
     "db:seed:demo": "tsx prisma/seed-demo.ts",
     "db:demo:remove": "tsx scripts/remove-demo-data.ts",
     "admin:create": "tsx scripts/admin.ts create",
+    "email:test": "tsx scripts/email-test.ts",
     "admin:grant": "tsx scripts/admin.ts grant",
     "admin:revoke": "tsx scripts/admin.ts revoke",
     "admin:list": "tsx scripts/admin.ts list",

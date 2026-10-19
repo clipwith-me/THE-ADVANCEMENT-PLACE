@@ -29,6 +29,10 @@ npm run db:demo:remove          # dry run: shows how many
 npm run db:demo:remove -- --yes # deletes demo jobs and any applications to them
 ```
 
+## Email troubleshooting
+
+In the host shell run `npm run email:test -- --to you@example.com`. It shows the SMTP settings in use (never the password), tests the login, sends one email and explains common failures (wrong SMTP login/key, blocked port, unverified sender). Failed sends in normal use log `email.send_failed` with the SMTP code and response.
+
 ## Data retention
 
 `npm run retention:purge` (dry run) / `-- --yes` deletes CVs and passport photos that are only attached to unsuccessful/withdrawn applications older than `RETENTION_DAYS` (default 365), attachments of enquiries resolved that long ago, expired sessions and spent tokens. Agree the period with the client's legal adviser and schedule it monthly.

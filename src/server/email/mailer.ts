@@ -17,7 +17,7 @@ export interface SendResult {
 
 let transporter: Transporter | undefined;
 
-function getTransport(): Transporter {
+export function getTransport(): Transporter {
   if (transporter) return transporter;
   const e = env();
   transporter = nodemailer.createTransport({
@@ -68,7 +68,22 @@ export async function sendEmail(message: EmailMessage): Promise<SendResult> {
     });
     return { delivered: true };
   } catch (error) {
-    logger.error("email.send_failed", { subject: message.subject, error });
+    logger.error("email.send_failed", { subject: message.subject, error, smtp: smtpErrorDetails(error) });
     return { delivered: false, reason: "send_failed" };
   }
+}
+
+/**
+ * The SMTP fields that explain a failure (e.g. 535 = wrong login/key,
+ * ETIMEDOUT = port blocked). Never includes credentials or message content.
+ */
+export function smtpErrorDetails(error: unknown): Record<string, unknown> {
+  if (typeof error !== "object" || !error) return {};
+  const e = error as { code?: unknown; responseCode?: unknown; command?: unknown; response?: unknown };
+  return {
+    code: e.code,
+    responseCode: e.responseCode,
+    command: e.command,
+    response: typeof e.response === "string" ? e.response.slice(0, 300) : undefined,
+  };
 }
