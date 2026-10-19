@@ -98,6 +98,7 @@ test.describe("public website", () => {
     await page.goto("/freelance-outsourcing");
     await page.getByLabel("Your name").fill("Firm Example");
     await page.getByLabel("Email address").fill("firm@example.test");
+    await page.getByLabel("Phone number").fill("0803 555 0202");
     await page.getByLabel("Type of service").selectOption("Outsourcing a project");
     await page.getByLabel("Project or request description").fill("We need help with a three-month data-entry project.");
     await page.getByLabel(/I agree that/).check();

@@ -59,7 +59,7 @@ export default function OutsourcingPage() {
             <Honeypot />
             <TextField name="name" label="Your name" required autoComplete="name" maxLength={120} />
             <TextField name="email" label="Email address" type="email" required autoComplete="email" />
-            <TextField name="phone" label="Phone number" type="tel" optionalLabel autoComplete="tel" />
+            <TextField name="phone" label="Phone number" type="tel" required autoComplete="tel" />
             <TextField name="organization" label="Organisation" optionalLabel autoComplete="organization" maxLength={160} />
             <SelectField name="serviceType" label="Type of service" required options={OUTSOURCING_SERVICE_TYPES} className="sm:col-span-2" />
             <TextAreaField

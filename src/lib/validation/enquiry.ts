@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { OUTSOURCING_SERVICE_TYPES, QUALIFICATIONS } from "../domain/labels";
-import { emailField, honeypot, optionalPhoneField, optionalText, phoneField, requiredText } from "./common";
+import { emailField, honeypot, optionalText, phoneField, requiredText } from "./common";
 
 const consent = z.literal("on", { error: "Please confirm we may use these details to respond to you" });
 
@@ -29,7 +29,7 @@ export const careerAssistanceSchema = z.object({
 export const outsourcingSchema = z.object({
   name: requiredText("Name", 2, 120),
   email: emailField,
-  phone: optionalPhoneField,
+  phone: phoneField,
   organization: optionalText(160),
   serviceType: z.enum(OUTSOURCING_SERVICE_TYPES, { error: "Select the type of service" }),
   message: requiredText("Project description", 20, 5000),

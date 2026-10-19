@@ -156,7 +156,7 @@ describe("enquiries", () => {
   it("rejects unsafe attachments without storing the enquiry", async () => {
     await expect(
       submitOutsourcing(
-        { name: "Firm Example", email: "firm@example.test", serviceType: "Outsourcing a project", message: "We need help with a data-entry project.", consent: "on" },
+        { name: "Firm Example", email: "firm@example.test", phone: "08035550202", serviceType: "Outsourcing a project", message: "We need help with a data-entry project.", consent: "on" },
         { name: "proposal.pdf", bytes: samplePdf("/JavaScript") },
         IP,
       ),
