@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { hasHorizontalOverflow } from "./fixtures";
+import { hasHorizontalOverflow, minimalPdf } from "./fixtures";
 
 test.describe("public website", () => {
   test("homepage shows the brand, real business details and live demo vacancies", async ({ page }) => {
@@ -70,13 +70,14 @@ test.describe("public website", () => {
     await expect(page.locator("form [role=alert]")).toContainText("Please fix the highlighted fields");
     await page.getByLabel("Your name").fill("Tunde Example");
     await page.getByLabel("Email address").fill("tunde@example.test");
+    await page.getByLabel("Phone number").fill("0803 555 0101");
     await page.getByRole("textbox", { name: "Message" }).fill("We would like to discuss recruitment support.");
     await page.getByLabel(/I agree that The Advancement Place/).check();
     await page.getByRole("button", { name: "Send message" }).click();
     await expect(page.getByRole("status").filter({ hasText: "your enquiry has been received" })).toBeVisible();
   });
 
-  test("career assistance enquiry submits without the optional CV", async ({ page }) => {
+  test("career assistance enquiry requires a CV, then submits", async ({ page }) => {
     await page.goto("/career-assistance");
     await page.getByLabel("Full name").fill("Ngozi Eze");
     await page.getByLabel("Email address").fill("ngozi@example.test");
@@ -85,6 +86,10 @@ test.describe("public website", () => {
     await page.getByLabel("Career interests").fill("Banking");
     await page.getByLabel("How can we help?").fill("I would like guidance on entering the banking sector.");
     await page.getByLabel(/I agree that/).check();
+    // The browser blocks submission without the CV; the server enforces it too (integration tests).
+    await page.getByRole("button", { name: "Submit enquiry" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "your enquiry has been received" })).toHaveCount(0);
+    await page.getByLabel("Your CV").setInputFiles({ name: "Ngozi CV.pdf", mimeType: "application/pdf", buffer: minimalPdf() });
     await page.getByRole("button", { name: "Submit enquiry" }).click();
     await expect(page.getByRole("status").filter({ hasText: "your enquiry has been received" })).toBeVisible();
   });

@@ -7,7 +7,7 @@ const consent = z.literal("on", { error: "Please confirm we may use these detail
 export const contactSchema = z.object({
   name: requiredText("Name", 2, 120),
   email: emailField,
-  phone: optionalPhoneField,
+  phone: phoneField,
   subject: requiredText("Subject", 3, 140),
   message: requiredText("Message", 10, 5000),
   consent,

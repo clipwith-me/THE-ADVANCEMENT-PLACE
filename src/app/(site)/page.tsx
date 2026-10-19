@@ -322,7 +322,7 @@ export default async function HomePage() {
                 Create your account
               </ButtonLink>
               <a
-                href={whatsappUrl("Hello The Advancement Place, I'd like to make an enquiry.")}
+                href={whatsappUrl("Hello The Advancement Place, I need assistance with applying for a job.")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md border border-white/40 px-6 font-semibold text-white hover:bg-white/10"

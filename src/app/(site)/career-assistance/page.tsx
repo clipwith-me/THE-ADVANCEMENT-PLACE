@@ -17,7 +17,7 @@ export const metadata = pageMetadata({
 });
 
 const steps = [
-  { icon: ClipboardList, title: "Tell us about yourself", body: "Share your academic background, career interests and, if you like, your CV." },
+  { icon: ClipboardList, title: "Tell us about yourself", body: "Share your academic background, career interests and your CV." },
   { icon: MessagesSquare, title: "We review your enquiry", body: "Our team reads every enquiry during business hours." },
   { icon: PhoneCall, title: "We get in touch", body: "We'll contact you by email or phone to discuss how we can help and the next steps." },
 ];
@@ -84,10 +84,10 @@ export default function CareerAssistancePage() {
             <TextAreaField name="message" label="How can we help?" required rows={5} maxLength={5000} className="sm:col-span-2" />
             <FileField
               name="attachment"
-              label="CV"
-              optionalLabel
+              label="Your CV"
+              required
               className="sm:col-span-2"
-              hint={`PDF or Word (.docx), up to ${env().MAX_UPLOAD_MB} MB. Stored privately and only seen by our team.`}
+              hint={`Required, so we can compare your experience with the roles you're interested in. PDF or Word (.docx), up to ${env().MAX_UPLOAD_MB} MB. Stored privately and only seen by our team.`}
             />
             <CheckboxField
               name="consent"

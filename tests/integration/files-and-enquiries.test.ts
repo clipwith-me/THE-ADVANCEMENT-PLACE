@@ -110,7 +110,7 @@ describe("passport photographs", () => {
 });
 
 describe("enquiries", () => {
-  const contact = { name: "Tunde Example", email: "tunde@example.test", subject: "Recruitment services", message: "We'd like to discuss a vacancy.", consent: "on" };
+  const contact = { name: "Tunde Example", email: "tunde@example.test", phone: "0803 555 0101", subject: "Recruitment services", message: "We'd like to discuss a vacancy.", consent: "on" };
 
   it("persists contact submissions and notifies the business inbox", async () => {
     const r = await submitContact(contact, IP);
@@ -133,17 +133,18 @@ describe("enquiries", () => {
   it("validates and rate-limits public forms", async () => {
     await expect(submitContact({ ...contact, email: "not-an-email" }, IP)).rejects.toMatchObject({ code: "VALIDATION" });
     await expect(submitContact({ ...contact, consent: "" }, IP)).rejects.toMatchObject({ code: "VALIDATION" });
+    // The client calls employers back, so a phone number is required.
+    await expect(submitContact({ ...contact, phone: "" }, IP)).rejects.toMatchObject({ code: "VALIDATION", fieldErrors: { phone: expect.any(Array) } });
     const ip = "192.0.2.200";
     for (let i = 0; i < 6; i++) await submitContact(contact, ip);
     await expect(submitContact(contact, ip)).rejects.toMatchObject({ code: "RATE_LIMITED" });
   });
 
-  it("career assistance accepts an optional CV attachment that only admins can download", async () => {
-    const r = await submitCareerAssistance(
-      { name: "Ngozi Example", email: "ngozi@example.test", phone: "08031234567", qualification: "HND", careerInterests: "Banking", message: "I'd like guidance on banking roles.", consent: "on" },
-      { name: "cv.pdf", bytes: samplePdf() },
-      IP,
-    );
+  it("career assistance requires a CV, which only admins can download", async () => {
+    const form = { name: "Ngozi Example", email: "ngozi@example.test", phone: "08031234567", qualification: "HND", careerInterests: "Banking", message: "I'd like guidance on banking roles.", consent: "on" };
+    await expect(submitCareerAssistance(form, null, IP)).rejects.toMatchObject({ code: "VALIDATION", fieldErrors: { attachment: expect.any(Array) } });
+    expect(await db.enquiry.count()).toBe(0);
+    const r = await submitCareerAssistance(form, { name: "cv.pdf", bytes: samplePdf() }, IP);
     const admin = await makeAdmin();
     const candidate = await makeCandidate();
     const e = await getEnquiry(admin, "CAREER_ASSISTANCE", r.id);

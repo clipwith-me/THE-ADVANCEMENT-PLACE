@@ -3,7 +3,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import type { EnquiryStatus, EnquiryType } from "@/generated/prisma/enums";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
-import { forbidden, notFound } from "@/lib/errors";
+import { forbidden, notFound, validationError } from "@/lib/errors";
 import { ENQUIRY_STATUSES, ENQUIRY_TYPE_LABEL, ENQUIRY_TYPE_SLUG, QUALIFICATION_LABEL } from "@/lib/domain/labels";
 import { optionalText } from "@/lib/validation/common";
 import { careerAssistanceSchema, contactSchema, outsourcingSchema } from "@/lib/validation/enquiry";
@@ -61,6 +61,8 @@ export async function submitContact(raw: Record<string, string>, ip: string) {
 
 export async function submitCareerAssistance(raw: Record<string, string>, attachment: IncomingFile | null, ip: string) {
   const input = parseOrThrow(careerAssistanceSchema, raw);
+  // The client needs the CV to compare the candidate with the roles they want.
+  if (!attachment) throw validationError("Please upload your CV.", { attachment: ["Upload your CV (PDF or Word)"] });
   await enforce(LIMITS.publicForm, ip);
   return persistAndNotify(
     "CAREER_ASSISTANCE",

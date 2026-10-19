@@ -8,6 +8,7 @@ import { DefinitionList, PageHeader } from "@/components/ui/misc";
 import { EnquiryStatusBadge } from "@/components/ui/status-badge";
 import { formatBytes, formatDateTime } from "@/lib/domain/format";
 import { ENQUIRY_SLUG_TYPE, ENQUIRY_STATUSES, ENQUIRY_STATUS_LABEL, ENQUIRY_TYPE_LABEL, QUALIFICATION_LABEL } from "@/lib/domain/labels";
+import { BUSINESS } from "@/lib/business";
 import { isAppError } from "@/lib/errors";
 import { requireAdmin } from "@/server/auth/current";
 import { getEnquiry } from "@/server/services/enquiry-service";
@@ -24,7 +25,10 @@ export default async function EnquiryPage({ params }: { params: Promise<{ kind: 
     if (isAppError(err) && err.code === "NOT_FOUND") notFound();
     throw err;
   });
-  const wa = e.phone ? `https://wa.me/${e.phone.replace(/\D/g, "")}` : null;
+  // Replies open pre-addressed, with a greeting, in the admin's own email or WhatsApp.
+  const replySubject = encodeURIComponent(`Re: your ${ENQUIRY_TYPE_LABEL[type].toLowerCase()} enquiry — ${BUSINESS.name}`);
+  const greeting = encodeURIComponent(`Hello ${e.name}, thank you for contacting ${BUSINESS.name}. `);
+  const wa = e.phone ? `https://wa.me/${e.phone.replace(/\D/g, "")}?text=${greeting}` : null;
 
   return (
     <>
@@ -66,7 +70,7 @@ export default async function EnquiryPage({ params }: { params: Promise<{ kind: 
             ]}
           />
           <div className="mt-5 flex flex-wrap gap-2">
-            <a href={`mailto:${e.email}`} className="inline-flex min-h-10 items-center gap-1.5 rounded-md border border-ink-300 px-3 text-sm font-semibold hover:bg-ink-50">
+            <a href={`mailto:${e.email}?subject=${replySubject}&body=${greeting}`} className="inline-flex min-h-10 items-center gap-1.5 rounded-md border border-ink-300 px-3 text-sm font-semibold hover:bg-ink-50">
               <Mail aria-hidden className="size-4" /> Reply by email
             </a>
             {e.phone && (
