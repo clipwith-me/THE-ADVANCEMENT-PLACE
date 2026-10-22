@@ -49,6 +49,9 @@ export default function PrivacyPage() {
                   <strong>Enquiries:</strong> details you submit through our contact, career assistance and freelance/outsourcing forms.
                 </li>
                 <li>
+                  <strong>Reviews:</strong> your name, email address, rating and review when you leave a review.
+                </li>
+                <li>
                   <strong>Security data:</strong> records of sign-ins and administrative actions. For rate limiting, IP addresses are
                   converted to a one-way keyed hash and are not stored in readable form.
                 </li>
@@ -76,6 +79,10 @@ export default function PrivacyPage() {
               <p>
                 Your profile, CV and applications are visible only to you and to our authorised recruitment staff. They are never shown on
                 public pages or to other candidates.
+              </p>
+              <p>
+                Reviews are published only after our team approves them, and only with your first name and last initial, your rating,
+                whether you are a job seeker, employer or client, and the date. Your email address is never published.
               </p>
               <p>
                 When you apply for a vacancy, we may share your application with the employer for that role as part of the recruitment
@@ -109,7 +116,8 @@ export default function PrivacyPage() {
               <p>
                 We keep your account and profile while your account is active. CVs and photos attached to unsuccessful or withdrawn applications are
                 deleted after a retention period (currently 12 months), and enquiry attachments are deleted after the enquiry has been
-                resolved for the same period.
+                resolved for the same period. Reviews we decide not to publish are deleted after the same period; published reviews stay until
+                you ask us to remove them.
               </p>
               <p>You can delete your account at any time from your account settings. This permanently removes your profile, photo, CVs and applications.</p>
             </>

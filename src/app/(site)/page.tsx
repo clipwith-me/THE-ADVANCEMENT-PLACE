@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { JobCard } from "@/components/jobs/job-card";
 import { JobSearchBar } from "@/components/jobs/job-search-bar";
+import { ReviewCard } from "@/components/reviews/review-card";
 import { LogoMark } from "@/components/site/logo";
 import { ButtonLink } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/misc";
@@ -25,6 +26,7 @@ import { ADDRESS_ONE_LINE, BUSINESS, whatsappUrl } from "@/lib/business";
 import { EMPLOYMENT_TYPES, EMPLOYMENT_TYPE_LABEL } from "@/lib/domain/labels";
 import { pageMetadata } from "@/lib/seo";
 import { categoriesWithCounts, latestJobs, liveJobCount } from "@/server/services/job-service";
+import { latestApprovedReviews } from "@/server/services/review-service";
 
 export const metadata = {
   ...pageMetadata({
@@ -44,7 +46,7 @@ const steps = [
 ];
 
 export default async function HomePage() {
-  const [jobs, liveCount, categories] = await Promise.all([latestJobs(6), liveJobCount(), categoriesWithCounts()]);
+  const [jobs, liveCount, categories, reviews] = await Promise.all([latestJobs(6), liveJobCount(), categoriesWithCounts(), latestApprovedReviews(3)]);
   const topCategories = categories.filter((c) => c.liveCount > 0).slice(0, 8);
 
   return (
@@ -303,6 +305,38 @@ export default async function HomePage() {
               See the status of each application you submit from your personal dashboard.
             </TrustItem>
           </ul>
+        </div>
+      </section>
+
+      {/* ── Reviews: only approved, real reviews; never placeholders ────── */}
+      <section className="border-t border-ink-200 bg-ink-50 py-16 sm:py-20" aria-labelledby="reviews-heading">
+        <div className="container-page">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="eyebrow">Reviews</p>
+              <h2 id="reviews-heading" className="mt-2 font-display text-3xl font-semibold tracking-tight">
+                {reviews.length ? "What people say about us" : "Worked with us? Share your experience"}
+              </h2>
+              {!reviews.length && <p className="mt-3 max-w-xl text-ink-600">Your review helps other job seekers and employers. It takes a minute.</p>}
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {reviews.length > 0 && (
+                <ButtonLink href="/reviews" variant="secondary">
+                  Read all reviews
+                </ButtonLink>
+              )}
+              <ButtonLink href="/reviews#leave-review">Leave a review</ButtonLink>
+            </div>
+          </div>
+          {reviews.length > 0 && (
+            <ul className="mt-8 grid gap-5 md:grid-cols-3">
+              {reviews.map((r) => (
+                <li key={r.id}>
+                  <ReviewCard review={r} />
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </section>
 

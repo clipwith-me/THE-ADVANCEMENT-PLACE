@@ -5,6 +5,7 @@
  *     before the cut-off (and not the candidate's current CV)
  *   - passport photos under the same rule (and not the candidate's current photo)
  *   - attachments of enquiries resolved before the cut-off
+ *   - reviews that were hidden (not published) before the cut-off
  *   - expired sessions and used/expired auth tokens
  *
  * Dry run by default; pass --yes to delete. Schedule it monthly (e.g. a cron
@@ -54,12 +55,13 @@ async function main() {
       db.storedFile.delete({ where: { id: f.id } }),
     ]);
   }
+  const reviews = await db.review.deleteMany({ where: { status: "REJECTED", moderatedAt: { lt: cutoff } } });
   const sessions = await db.session.deleteMany({ where: { expiresAt: { lt: new Date() } } });
   const tokens = await db.authToken.deleteMany({ where: { OR: [{ usedAt: { not: null } }, { expiresAt: { lt: new Date() } }] } });
   await db.auditEvent.create({
-    data: { action: "retention.purge", entityType: "StoredFile", metadata: { files: files.length, sessions: sessions.count, tokens: tokens.count } },
+    data: { action: "retention.purge", entityType: "StoredFile", metadata: { files: files.length, reviews: reviews.count, sessions: sessions.count, tokens: tokens.count } },
   });
-  console.log(`Deleted ${files.length} files, ${sessions.count} expired sessions, ${tokens.count} spent tokens.`);
+  console.log(`Deleted ${files.length} files, ${reviews.count} hidden reviews, ${sessions.count} expired sessions, ${tokens.count} spent tokens.`);
 }
 
 main()

@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState, type ReactNode } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Star } from "lucide-react";
 import { useFormState } from "./action-form";
 
 const control =
@@ -89,7 +89,10 @@ export function TextField({
   maxLength,
   min,
   max,
+  id: idOverride,
 }: BaseProps & {
+  /** Needed when the same field name appears more than once on a page. */
+  id?: string;
   defaultValue?: string | number | null;
   type?: "text" | "email" | "tel" | "url" | "number" | "date" | "month" | "search";
   autoComplete?: string;
@@ -99,7 +102,9 @@ export function TextField({
   min?: string | number;
   max?: string | number;
 }) {
-  const { errors, value, id } = useField(name, defaultValue);
+  const field = useField(name, defaultValue);
+  const { errors, value } = field;
+  const id = idOverride ?? field.id;
   return (
     <Shell id={id} label={label} hint={hint} required={required} optionalLabel={optionalLabel} errors={errors} className={className}>
       <input
@@ -308,6 +313,60 @@ export function FileField({
         className={`block w-full rounded-md border bg-white text-sm text-ink-700 file:mr-3 file:min-h-11 file:cursor-pointer file:border-0 file:border-r file:border-ink-300 file:bg-ink-100 file:px-4 file:text-sm file:font-semibold file:text-ink-900 hover:file:bg-ink-200 ${errors?.length ? errBorder : okBorder}`}
       />
     </Shell>
+  );
+}
+
+/**
+ * 1–5 star rating built on a native radio group, so keyboard (arrow keys)
+ * and screen readers work as for any radio buttons.
+ */
+export function RatingField({ name, label, required, className = "" }: Omit<BaseProps, "hint" | "optionalLabel">) {
+  const { errors, value, id } = useField(name);
+  const [rating, setRating] = useState(Number(value) || 0);
+  const [hover, setHover] = useState(0);
+  const shown = hover || rating;
+  const words = ["", "Poor", "Fair", "Good", "Very good", "Excellent"];
+  return (
+    <fieldset className={className} aria-invalid={errors?.length ? true : undefined} aria-describedby={errors?.length ? `${id}-error` : undefined}>
+      <legend className="mb-1.5 flex items-baseline gap-1.5 text-sm font-medium text-ink-800">
+        {label}
+        {required && (
+          <span className="text-danger-700" aria-hidden>
+            *
+          </span>
+        )}
+      </legend>
+      <div className="flex items-center gap-3">
+        <div className="flex" onMouseLeave={() => setHover(0)}>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <label key={n} className="cursor-pointer p-1 has-[:focus-visible]:rounded-md has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-brand-200" onMouseEnter={() => setHover(n)}>
+              <input
+                type="radio"
+                name={name}
+                value={n}
+                required={required}
+                checked={rating === n}
+                onChange={() => setRating(n)}
+                className="sr-only"
+                {...(n === 1 ? { id } : {})}
+              />
+              <Star aria-hidden className={`size-8 transition-colors ${n <= shown ? "fill-brand-400 text-brand-600" : "fill-transparent text-ink-300"}`} />
+              <span className="sr-only">
+                {n} star{n === 1 ? "" : "s"} – {words[n]}
+              </span>
+            </label>
+          ))}
+        </div>
+        <span className="text-sm font-medium text-ink-700" aria-hidden>
+          {shown ? words[shown] : "Tap a star"}
+        </span>
+      </div>
+      {errors?.length ? (
+        <p id={`${id}-error`} className="mt-1.5 text-xs font-medium text-danger-700">
+          {errors[0]}
+        </p>
+      ) : null}
+    </fieldset>
   );
 }
 

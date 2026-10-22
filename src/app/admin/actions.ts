@@ -9,7 +9,10 @@ import { setCandidateStatus } from "@/server/services/admin-service";
 import { addApplicationNote, updateApplicationStatus } from "@/server/services/application-service";
 import { updateEnquiry } from "@/server/services/enquiry-service";
 import { createJob, transitionJob, updateJob, type JobTransition } from "@/server/services/job-service";
+import { ADMIN_IMAGE_MAX_BYTES, readUpload } from "@/server/services/file-service";
+import { moderateReview, type ReviewDecision } from "@/server/services/review-service";
 import { updateSettings } from "@/server/services/settings-service";
+import { deleteSitePhoto, moveSitePhoto, setSitePhotoPublished, updateSitePhoto, uploadSitePhoto } from "@/server/services/site-content-service";
 import { inviteAdmin, setAdminStatus } from "@/server/services/team-service";
 
 // Every action re-authenticates and services re-check the policy; the admin
@@ -21,9 +24,10 @@ export async function createJobAction(_prev: FormState, form: FormData): Promise
   const intent = values.intent === "publish" ? "publish" : "draft";
   let id: string;
   try {
-    id = (await createJob(admin, values, intent)).id;
+    const upload = await readUpload(form.get("flyer"), ADMIN_IMAGE_MAX_BYTES);
+    id = (await createJob(admin, values, intent, { upload })).id;
   } catch (e) {
-    return toFormState(e, values);
+    return toFormState(e, values, "flyer");
   }
   revalidatePath("/admin/jobs");
   redirect(`/admin/jobs/${id}/edit?saved=${intent}`);
@@ -34,9 +38,10 @@ export async function updateJobAction(_prev: FormState, form: FormData): Promise
   const values = formToObject(form);
   const intent = values.intent === "publish" ? "publish" : values.intent === "draft" ? "draft" : "save";
   try {
-    await updateJob(admin, values.id ?? "", values, intent);
+    const upload = await readUpload(form.get("flyer"), ADMIN_IMAGE_MAX_BYTES);
+    await updateJob(admin, values.id ?? "", values, intent, { upload, remove: values.removeFlyer === "on" });
   } catch (e) {
-    return toFormState(e, values);
+    return toFormState(e, values, "flyer");
   }
   revalidatePath("/admin/jobs");
   revalidatePath("/jobs");
@@ -151,4 +156,57 @@ export async function adminAccessAction(_prev: FormState, form: FormData): Promi
   }
   revalidatePath("/admin/team");
   return success(status === "ACTIVE" ? "Access restored." : "Access removed.");
+}
+
+const REVIEW_DECISIONS: ReviewDecision[] = ["approve", "reject", "delete"];
+
+export async function moderateReviewAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const admin = await requireAdmin();
+  const decision = String(form.get("decision") ?? "") as ReviewDecision;
+  try {
+    if (!REVIEW_DECISIONS.includes(decision)) throw new Error("Unknown decision");
+    await moderateReview(admin, String(form.get("id") ?? ""), decision);
+  } catch (e) {
+    return toFormState(e);
+  }
+  revalidatePath("/admin/reviews");
+  revalidatePath("/reviews");
+  revalidatePath("/");
+  return success(decision === "approve" ? "Review published." : decision === "reject" ? "Review hidden." : "Review deleted.");
+}
+
+function revalidateSitePhotos() {
+  revalidatePath("/admin/site-photos");
+  revalidatePath("/about");
+}
+
+export async function uploadSitePhotoAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const admin = await requireAdmin();
+  const values = formToObject(form);
+  try {
+    const file = await readUpload(form.get("photo"), ADMIN_IMAGE_MAX_BYTES);
+    if (!file) return { status: "error", message: "Choose a photo to upload.", fieldErrors: { photo: ["Choose a JPEG or PNG photo"] }, values, at: Date.now() };
+    await uploadSitePhoto(admin, file, values);
+  } catch (e) {
+    return toFormState(e, values, "photo");
+  }
+  revalidateSitePhotos();
+  return success("Photo added to the About page.", {});
+}
+
+export async function updateSitePhotoAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const admin = await requireAdmin();
+  const values = formToObject(form);
+  const id = values.id ?? "";
+  try {
+    if (values.op === "caption") await updateSitePhoto(admin, id, values);
+    else if (values.op === "show" || values.op === "hide") await setSitePhotoPublished(admin, id, values.op === "show");
+    else if (values.op === "up" || values.op === "down") await moveSitePhoto(admin, id, values.op);
+    else if (values.op === "delete") await deleteSitePhoto(admin, id);
+    else throw new Error("Unknown operation");
+  } catch (e) {
+    return toFormState(e, values);
+  }
+  revalidateSitePhotos();
+  return success(values.op === "delete" ? "Photo deleted." : "Saved.");
 }

@@ -136,3 +136,14 @@ describe("authorisation policies", () => {
     expect(canDownloadFile(null, { ownerId: "c1" })).toBe(false);
   });
 });
+
+describe("reviewer display name", () => {
+  it("shows first name and last initial only", async () => {
+    const { reviewerDisplayName } = await import("@/lib/domain/review");
+    expect(reviewerDisplayName("Ngozi Eze")).toBe("Ngozi E.");
+    expect(reviewerDisplayName("  Tunde   Ade  Bakare ")).toBe("Tunde B.");
+    expect(reviewerDisplayName("Bola")).toBe("Bola");
+    expect(reviewerDisplayName("ngozi eze")).toBe("ngozi E.");
+    expect(reviewerDisplayName("   ")).toBe("Anonymous");
+  });
+});

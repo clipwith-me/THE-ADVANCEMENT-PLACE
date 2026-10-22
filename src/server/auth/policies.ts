@@ -36,3 +36,6 @@ export function canDownloadFile(actor: Actor | null | undefined, file: { ownerId
   if (isAdmin(actor)) return true;
   return file.ownerId !== null && file.ownerId === actor.id;
 }
+
+export const canModerateReviews = isAdmin;
+export const canManageSiteContent = isAdmin;

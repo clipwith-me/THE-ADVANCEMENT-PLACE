@@ -18,6 +18,7 @@ const columns = [
     title: "Company",
     links: [
       { href: "/about", label: "About us" },
+      { href: "/reviews", label: "Reviews" },
       { href: "/freelance-outsourcing", label: "Freelance & outsourcing" },
       { href: "/contact", label: "Contact us" },
     ],

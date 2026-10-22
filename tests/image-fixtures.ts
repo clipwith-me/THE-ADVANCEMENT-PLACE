@@ -83,3 +83,9 @@ export function sampleJpeg(width = 300, height = 400, opts: { orientation?: numb
     Buffer.from([0x12, 0x34, 0x56, 0xff, 0xd9]),
   ]);
 }
+
+/** A real, decodable JPEG (sampleJpeg() is structural only and can't be resized). */
+export async function decodableJpeg(width: number, height: number): Promise<Buffer> {
+  const sharp = (await import("sharp")).default;
+  return sharp(solidPng(width, height)).jpeg().toBuffer();
+}

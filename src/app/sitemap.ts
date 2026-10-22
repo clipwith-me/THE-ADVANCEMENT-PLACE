@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 /** Public pages plus live, non-demo vacancies. Never includes candidate data. */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
-  const staticPages = ["", "/jobs", "/about", "/career-assistance", "/freelance-outsourcing", "/contact", "/privacy", "/terms"].map((p) => ({
+  const staticPages = ["", "/jobs", "/about", "/reviews", "/career-assistance", "/freelance-outsourcing", "/contact", "/privacy", "/terms"].map((p) => ({
     url: `${base}${p}`,
     changeFrequency: (p === "" || p === "/jobs" ? "daily" : "monthly") as "daily" | "monthly",
     priority: p === "" ? 1 : 0.6,

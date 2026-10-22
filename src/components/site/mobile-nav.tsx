@@ -64,7 +64,7 @@ export function MobileNav({
       id="mobile-menu"
       ref={panelRef}
       style={{ top }}
-      className="fixed inset-x-0 bottom-0 z-40 overflow-y-auto overscroll-contain border-t border-ink-200 bg-white px-4 pt-2 pb-[max(2rem,env(safe-area-inset-bottom))] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 overflow-y-auto overscroll-contain border-t border-ink-200 bg-white px-4 pt-2 pb-[max(2rem,env(safe-area-inset-bottom))] xl:hidden"
     >
       <nav aria-label="Mobile">
         <ul className="divide-y divide-ink-100">
@@ -128,7 +128,7 @@ export function MobileNav({
   );
 
   return (
-    <div className="lg:hidden">
+    <div className="xl:hidden">
       <button
         ref={buttonRef}
         type="button"

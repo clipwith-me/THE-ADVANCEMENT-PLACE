@@ -9,19 +9,21 @@ import {
   FileText,
   Handshake,
   History,
+  ImageIcon,
   LayoutDashboard,
   Lightbulb,
   LogOut,
   Mail,
   Menu,
   Settings,
+  Star,
   UserCog,
   Users,
   X,
 } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth";
 
-type Counts = { career?: number; outsourcing?: number; contact?: number; review?: number };
+type Counts = { career?: number; outsourcing?: number; contact?: number; review?: number; pendingReviews?: number };
 
 const sections = (c: Counts) => [
   {
@@ -39,6 +41,13 @@ const sections = (c: Counts) => [
       { href: "/admin/enquiries/career", label: "Career assistance", icon: Lightbulb, badge: c.career },
       { href: "/admin/enquiries/outsourcing", label: "Freelance & outsourcing", icon: Handshake, badge: c.outsourcing },
       { href: "/admin/enquiries/contact", label: "Contact", icon: Mail, badge: c.contact },
+    ],
+  },
+  {
+    title: "Website",
+    items: [
+      { href: "/admin/reviews", label: "Reviews", icon: Star, badge: c.pendingReviews },
+      { href: "/admin/site-photos", label: "Website photos", icon: ImageIcon },
     ],
   },
   {

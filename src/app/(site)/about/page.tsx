@@ -5,6 +5,7 @@ import { PageHero } from "@/components/site/page-hero";
 import { ButtonLink } from "@/components/ui/button";
 import { BUSINESS } from "@/lib/business";
 import { pageMetadata } from "@/lib/seo";
+import { publishedSitePhotos } from "@/server/services/site-content-service";
 
 export const metadata = pageMetadata({
   title: "About Us",
@@ -30,7 +31,8 @@ const services = [
   },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const photos = await publishedSitePhotos();
   return (
     <>
       <PageHero eyebrow={`About ${BUSINESS.name}`} title="Helping people take the next step in their careers">
@@ -95,6 +97,37 @@ export default function AboutPage() {
           <ContactCard />
         </aside>
       </section>
+
+      {/* Real photos uploaded by staff; the section doesn't render until there are some. */}
+      {photos.length > 0 && (
+        <section className="border-t border-ink-200 bg-ink-50 py-14" aria-labelledby="gallery-heading">
+          <div className="container-page">
+            <h2 id="gallery-heading" className="font-display text-3xl font-semibold tracking-tight">
+              Inside {BUSINESS.name}
+            </h2>
+            <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {photos.map((p, i) => (
+                <li key={p.id}>
+                  <figure className="overflow-hidden rounded-xl border border-ink-200 bg-white">
+                    <a href={`/media/${p.fileId}`} target="_blank" rel="noopener noreferrer" className="block">
+                      {/* eslint-disable-next-line @next/next/no-img-element -- resized on upload */}
+                      <img
+                        src={`/media/${p.fileId}`}
+                        alt={p.caption}
+                        loading={i < 3 ? "eager" : "lazy"}
+                        decoding="async"
+                        className="aspect-[4/3] w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
+                      />
+                      <span className="sr-only"> (opens full size in a new tab)</span>
+                    </a>
+                    <figcaption className="p-4 text-sm text-ink-700">{p.caption}</figcaption>
+                  </figure>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
     </>
   );
 }

@@ -12,6 +12,7 @@ export const PRIMARY_NAV = [
   { href: "/career-assistance", label: "Career Assistance" },
   { href: "/freelance-outsourcing", label: "Freelance & Outsourcing" },
   { href: "/about", label: "About" },
+  { href: "/reviews", label: "Reviews" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -33,10 +34,10 @@ export async function SiteHeader() {
         </a>
         <div className="container-page flex h-16 items-center justify-between gap-4 sm:h-[4.5rem]">
           <HeaderLogo />
-          <nav aria-label="Primary" className="hidden lg:block">
+          <nav aria-label="Primary" className="hidden xl:block">
             <NavLinks items={PRIMARY_NAV} />
           </nav>
-          <div className="hidden items-center gap-2 lg:flex">
+          <div className="hidden items-center gap-2 xl:flex">
             {dashboard ? (
               <>
                 {user?.role !== "ADMIN" && (

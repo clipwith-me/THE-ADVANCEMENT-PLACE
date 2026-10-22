@@ -21,6 +21,7 @@ export const LIMITS = {
   passwordReset: { name: "pw-reset", max: 5, windowSeconds: 60 * 60 },
   verificationEmail: { name: "verify-email", max: 5, windowSeconds: 60 * 60 },
   publicForm: { name: "public-form", max: 6, windowSeconds: 60 * 60 },
+  review: { name: "review", max: 5, windowSeconds: 60 * 60 },
   upload: { name: "upload", max: 20, windowSeconds: 60 * 60 },
   apply: { name: "apply", max: 30, windowSeconds: 60 * 60 },
 } satisfies Record<string, Limit>;

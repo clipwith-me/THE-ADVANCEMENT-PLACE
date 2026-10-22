@@ -35,15 +35,15 @@ model User {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  sessions          Session[]
-  tokens            AuthToken[]
-  profile           CandidateProfile?
-  files             StoredFile[]          @relation("FileOwner")
-  applications      Application[]
-  jobsCreated       Job[]                 @relation("JobCreatedBy")
-  statusChanges     ApplicationStatusEvent[]
-  applicationNotes  ApplicationNote[]
-  auditEvents       AuditEvent[]
+  sessions         Session[]
+  tokens           AuthToken[]
+  profile          CandidateProfile?
+  files            StoredFile[]             @relation("FileOwner")
+  applications     Application[]
+  jobsCreated      Job[]                    @relation("JobCreatedBy")
+  statusChanges    ApplicationStatusEvent[]
+  applicationNotes ApplicationNote[]
+  auditEvents      AuditEvent[]
 
   @@index([role, createdAt])
 }
@@ -102,29 +102,29 @@ enum NyscStatus {
 }
 
 model CandidateProfile {
-  id                  String         @id @default(cuid())
-  userId              String         @unique
-  phone               String?
-  state               String?
-  city                String?
-  headline            String?
+  id                   String         @id @default(cuid())
+  userId               String         @unique
+  phone                String?
+  state                String?
+  city                 String?
+  headline             String?
   highestQualification Qualification?
-  qualificationDetail String? // free text, e.g. "B.Sc. Accounting" or the "Other" description
-  institution         String?
-  courseOfStudy       String?
-  graduationYear      Int?
-  nyscStatus          NyscStatus? // optional by design — never required
-  certifications      String?
-  portfolioUrl        String?
-  linkedinUrl         String?
-  about               String?
-  currentCvId         String?        @unique
-  photoId             String?        @unique // passport photograph, for identification
+  qualificationDetail  String? // free text, e.g. "B.Sc. Accounting" or the "Other" description
+  institution          String?
+  courseOfStudy        String?
+  graduationYear       Int?
+  nyscStatus           NyscStatus? // optional by design — never required
+  certifications       String?
+  portfolioUrl         String?
+  linkedinUrl          String?
+  about                String?
+  currentCvId          String?        @unique
+  photoId              String?        @unique // passport photograph, for identification
   // Set by the server only when the completeness rules pass; the gate always
   // re-evaluates live data, so this is informational (dashboards/metrics).
-  completedAt         DateTime?
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
+  completedAt          DateTime?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
 
   user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   currentCv  StoredFile?       @relation("CurrentCv", fields: [currentCvId], references: [id], onDelete: SetNull)
@@ -189,18 +189,20 @@ enum FileKind {
   CV
   PHOTO
   ENQUIRY_ATTACHMENT
+  JOB_FLYER // public while its job is publicly visible
+  SITE_PHOTO // public while published (About page gallery)
 }
 
 model StoredFile {
-  id           String    @id @default(cuid())
+  id           String   @id @default(cuid())
   kind         FileKind
   ownerId      String? // null for anonymous enquiry attachments (admin-only access)
   originalName String // sanitised display name only — never used as a path
   mimeType     String // derived from content sniffing, not the browser
   sizeBytes    Int
   sha256       String
-  storageKey   String    @unique // server-generated, opaque
-  createdAt    DateTime  @default(now())
+  storageKey   String   @unique // server-generated, opaque
+  createdAt    DateTime @default(now())
 
   owner             User?             @relation("FileOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   currentCvOf       CandidateProfile? @relation("CurrentCv")
@@ -208,6 +210,8 @@ model StoredFile {
   applications      Application[]     @relation("ApplicationCv")
   photoApplications Application[]     @relation("ApplicationPhoto")
   enquiries         Enquiry[]
+  flyerOf           Job?              @relation("JobFlyer")
+  sitePhoto         SitePhoto?
 
   @@index([ownerId, kind])
 }
@@ -250,10 +254,10 @@ enum SalaryPeriod {
 }
 
 model JobCategory {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  slug      String   @unique
-  sortOrder Int      @default(0)
+  id        String @id @default(cuid())
+  name      String @unique
+  slug      String @unique
+  sortOrder Int    @default(0)
   jobs      Job[]
 }
 
@@ -286,11 +290,15 @@ model Job {
   publishedAt        DateTime?
   closedAt           DateTime?
   categoryId         String
+  // Optional flyer (image or PDF) shown on the public job page.
+  flyerId            String?         @unique
   createdById        String?
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
 
-  category     JobCategory   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  category JobCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  flyer        StoredFile?   @relation("JobFlyer", fields: [flyerId], references: [id], onDelete: SetNull)
   createdBy    User?         @relation("JobCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   applications Application[]
 
@@ -380,26 +388,71 @@ enum EnquiryStatus {
 }
 
 model Enquiry {
-  id               String        @id @default(cuid())
-  type             EnquiryType
-  status           EnquiryStatus @default(NEW)
-  name             String
-  email            String
-  phone            String?
-  organization     String?
-  subject          String? // contact subject, or freelance/outsourcing service type
-  message          String
-  qualification    Qualification? // career assistance
-  careerInterests  String? // career assistance
-  attachmentId     String?
-  adminNotes       String?
+  id              String         @id @default(cuid())
+  type            EnquiryType
+  status          EnquiryStatus  @default(NEW)
+  name            String
+  email           String
+  phone           String?
+  organization    String?
+  subject         String? // contact subject, or freelance/outsourcing service type
+  message         String
+  qualification   Qualification? // career assistance
+  careerInterests String? // career assistance
+  attachmentId    String?
+  adminNotes      String?
   // Null when no notification was sent (e.g. email not configured or failed).
-  notifiedAt       DateTime?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  attachment       StoredFile?   @relation(fields: [attachmentId], references: [id], onDelete: SetNull)
+  notifiedAt      DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  attachment      StoredFile?    @relation(fields: [attachmentId], references: [id], onDelete: SetNull)
 
   @@index([type, status, createdAt])
+}
+
+// ─── Reviews & website content ───────────────────────────────────────────────
+
+enum ReviewStatus {
+  PENDING // awaiting moderation; never shown publicly
+  APPROVED // shown on the website
+  REJECTED // hidden
+}
+
+enum ReviewerType {
+  CANDIDATE
+  EMPLOYER
+  OTHER
+}
+
+// Public reviews. Nothing is displayed until an administrator approves it.
+model Review {
+  id            String       @id @default(cuid())
+  status        ReviewStatus @default(PENDING)
+  name          String
+  email         String // private: lets staff verify the reviewer; never displayed
+  reviewerType  ReviewerType
+  rating        Int // 1–5, also enforced by a CHECK constraint
+  comment       String
+  notifiedAt    DateTime?
+  moderatedAt   DateTime?
+  moderatedById String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([status, createdAt])
+}
+
+// Photos for the About page, uploaded and ordered by administrators.
+model SitePhoto {
+  id        String     @id @default(cuid())
+  fileId    String     @unique
+  caption   String // also the image's alt text
+  sortOrder Int        @default(0)
+  published Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  file      StoredFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@index([published, sortOrder])
 }
 
 // ─── Platform ─────────────────────────────────────────────────────────────────
@@ -432,11 +485,11 @@ model RateLimitBucket {
 
 // Single-row table of admin-editable site settings.
 model SiteSettings {
-  id                   Int      @id @default(1)
-  publicJobPreview     Boolean  @default(true)
-  requireCvForProfile  Boolean  @default(true)
-  requirePhotoForProfile Boolean @default(true)
-  applicationsOpen     Boolean  @default(true)
-  announcement         String?
-  updatedAt            DateTime @updatedAt
+  id                     Int      @id @default(1)
+  publicJobPreview       Boolean  @default(true)
+  requireCvForProfile    Boolean  @default(true)
+  requirePhotoForProfile Boolean  @default(true)
+  applicationsOpen       Boolean  @default(true)
+  announcement           String?
+  updatedAt              DateTime @updatedAt
 }

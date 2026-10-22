@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { ActionForm, SubmitButton } from "@/components/forms/action-form";
-import { CheckboxField, SelectField, TextAreaField, TextField } from "@/components/forms/fields";
+import { CheckboxField, FileField, SelectField, TextAreaField, TextField } from "@/components/forms/fields";
 import type { FormState } from "@/server/action-state";
 import { EMPLOYMENT_TYPES, EMPLOYMENT_TYPE_LABEL, WORK_ARRANGEMENTS, WORK_ARRANGEMENT_LABEL } from "@/lib/domain/labels";
 import { JOB_LOCATIONS } from "@/lib/domain/nigeria";
@@ -30,6 +30,7 @@ export interface JobFormValues {
   applyInstructions?: string | null;
   featured?: boolean;
   status?: string;
+  flyer?: { id: string; mimeType: string; originalName: string } | null;
 }
 
 /** Date in Lagos as YYYY-MM-DD for the date input. */
@@ -62,7 +63,7 @@ export function JobForm({
   const v = job ?? {};
   const isPublished = v.status === "PUBLISHED";
   return (
-    <ActionForm action={action} className="space-y-6" aria-label={mode === "create" ? "Create job" : "Edit job"}>
+    <ActionForm action={action} className="space-y-6" aria-label={mode === "create" ? "Create job" : "Edit job"} refreshOnSuccess={mode === "edit"}>
       {v.id && <input type="hidden" name="id" value={v.id} />}
 
       <Fieldset legend="Basics">
@@ -136,6 +137,33 @@ export function JobForm({
         />
         <CheckboxField name="featured" defaultChecked={v.featured} label="Feature on the homepage" className="sm:self-end" />
         <TextAreaField name="applyInstructions" label="Additional application instructions" optionalLabel rows={3} maxLength={1000} defaultValue={v.applyInstructions} className="sm:col-span-2" />
+      </Fieldset>
+
+      <Fieldset
+        legend="Job flyer"
+        description="Optional. If there's a flyer for this vacancy, upload it and it will appear on the job page. Images are resized for the web automatically."
+      >
+        {v.flyer && (
+          <div className="flex flex-wrap items-center gap-4 sm:col-span-2">
+            {v.flyer.mimeType.startsWith("image/") ? (
+              // eslint-disable-next-line @next/next/no-img-element -- admin preview of an uploaded file
+              <img src={`/media/${v.flyer.id}`} alt="Current job flyer" className="h-40 w-auto rounded-md object-contain ring-1 ring-ink-200" />
+            ) : (
+              <a href={`/media/${v.flyer.id}`} className="link text-sm">
+                Current flyer: {v.flyer.originalName}
+              </a>
+            )}
+            <CheckboxField name="removeFlyer" label="Remove this flyer" hint="Or choose a new file below to replace it." />
+          </div>
+        )}
+        <FileField
+          name="flyer"
+          label={v.flyer ? "Replace flyer" : "Upload flyer"}
+          optionalLabel
+          accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+          className="sm:col-span-2"
+          hint="JPEG, PNG or PDF, up to 15 MB."
+        />
       </Fieldset>
 
       <div className="sticky bottom-0 z-10 -mx-4 flex flex-col-reverse gap-2 border-t border-ink-200 bg-white/95 px-4 py-3 backdrop-blur sm:mx-0 sm:flex-row sm:justify-end sm:rounded-lg sm:border">

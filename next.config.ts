@@ -17,13 +17,13 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
-  // pg + argon2 are native/Node-only; keep them out of the server bundle.
-  serverExternalPackages: ["@node-rs/argon2", "pg"],
+  // pg, argon2 and sharp are native/Node-only; keep them out of the server bundle.
+  serverExternalPackages: ["@node-rs/argon2", "pg", "sharp"],
   experimental: {
     serverActions: {
       // CV/attachment uploads go through Server Actions. The app enforces its own
-      // (smaller) per-file limit; this is only the transport ceiling.
-      bodySizeLimit: "8mb",
+      // (smaller) per-file limit (5 MB candidates, 15 MB admin images); this is only the transport ceiling.
+      bodySizeLimit: "16mb",
     },
   },
   async headers() {

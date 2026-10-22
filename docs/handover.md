@@ -18,6 +18,9 @@ Day to day, staff are added and removed in **Admin › Staff** (invite by email;
 - **Applications**: filter by status or job; open one to see the details as submitted, see the passport photo submitted with it, download the CV, change status (optionally emailing the candidate) and add internal notes (never shown to candidates).
 - **Candidates**: search, view profiles, suspend/reactivate (preferred over deletion). Candidates delete their own accounts under Account settings.
 - **Enquiries**: three inboxes (career, outsourcing, contact) with New / In progress / Resolved and internal notes. Each enquiry shows a warning if its email notification wasn't delivered.
+- **Reviews**: publish, hide or delete reviews submitted on the website (new ones show a badge in the menu and are emailed to the business inbox).
+- **Website photos**: add real photos with captions for the About page; show/hide, reorder or delete them.
+- **Jobs → Job flyer**: optionally attach a flyer (image or PDF) to any vacancy; it appears on the job page.
 - **Settings**: public job adverts on/off, CV and passport photo required for a complete profile, pause applications, announcement banner.
 
 ## Demo data — remove before launch

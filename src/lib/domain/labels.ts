@@ -122,3 +122,19 @@ export const OUTSOURCING_SERVICE_TYPES = [
   "Partnership proposal",
   "Other",
 ] as const;
+
+export const REVIEWER_TYPES = ["CANDIDATE", "EMPLOYER", "OTHER"] as const;
+export type ReviewerTypeValue = (typeof REVIEWER_TYPES)[number];
+export const REVIEWER_TYPE_LABEL: Record<ReviewerTypeValue, string> = {
+  CANDIDATE: "Job seeker",
+  EMPLOYER: "Employer",
+  OTHER: "Client",
+};
+
+export const REVIEW_STATUSES = ["PENDING", "APPROVED", "REJECTED"] as const;
+export type ReviewStatusValue = (typeof REVIEW_STATUSES)[number];
+export const REVIEW_STATUS_LABEL: Record<ReviewStatusValue, string> = {
+  PENDING: "Awaiting approval",
+  APPROVED: "Published",
+  REJECTED: "Hidden",
+};

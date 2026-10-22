@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Banknote, Briefcase, Building2, CalendarClock, CalendarDays, GraduationCap, MapPin, Monitor, Tag } from "lucide-react";
+import { Banknote, Briefcase, Building2, CalendarClock, CalendarDays, Download, GraduationCap, MapPin, Maximize2, Monitor, Tag } from "lucide-react";
 import { EMPLOYMENT_TYPE_LABEL, WORK_ARRANGEMENT_LABEL } from "@/lib/domain/labels";
 import { formatDate, formatExperience, formatSalary } from "@/lib/domain/format";
 import type { PublicJob } from "@/server/services/job-service";
@@ -20,6 +20,33 @@ export function Paragraphs({ text }: { text: string }) {
           </p>
         ))}
     </div>
+  );
+}
+
+/** The vacancy's flyer: images are shown inline (tap to open full size); PDFs download. */
+function JobFlyer({ flyer, title }: { flyer: NonNullable<PublicJob["flyer"]>; title: string }) {
+  const href = `/media/${flyer.id}`;
+  if (!flyer.mimeType.startsWith("image/")) {
+    return (
+      <a href={href} className="mt-6 flex items-center gap-3 rounded-lg border border-ink-200 bg-white p-4 hover:border-brand-300">
+        <Download aria-hidden className="size-5 shrink-0 text-brand-700" />
+        <span>
+          <span className="block font-semibold text-ink-900">Download the job flyer</span>
+          <span className="text-sm text-ink-600">PDF</span>
+        </span>
+      </a>
+    );
+  }
+  return (
+    <figure className="mt-6">
+      <a href={href} target="_blank" rel="noopener noreferrer" className="group block overflow-hidden rounded-lg border border-ink-200 bg-ink-50">
+        {/* eslint-disable-next-line @next/next/no-img-element -- already resized on upload */}
+        <img src={href} alt={`Flyer for ${title}`} loading="lazy" decoding="async" className="mx-auto max-h-[36rem] w-auto object-contain" />
+      </a>
+      <figcaption className="mt-2 flex items-center gap-1.5 text-sm text-ink-600">
+        <Maximize2 aria-hidden className="size-4" /> Tap the flyer to open it full size<span className="sr-only"> (opens in a new tab)</span>
+      </figcaption>
+    </figure>
   );
 }
 
@@ -76,6 +103,8 @@ export function JobDetail({ job, applyPanel, banner }: { job: PublicJob; applyPa
           </ul>
 
           <p className="mt-6 text-lg leading-relaxed text-ink-800">{job.summary}</p>
+
+          {job.flyer && <JobFlyer flyer={job.flyer} title={job.title} />}
 
           <section className="mt-8">
             <h2 className="text-lg font-semibold text-ink-900">About the role</h2>

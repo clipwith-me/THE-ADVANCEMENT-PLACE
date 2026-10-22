@@ -133,10 +133,11 @@ export async function recentAudit(actor: Actor, limit = 30) {
 /** Badge counts for the admin navigation. */
 export async function adminNavCounts(actor: Actor) {
   if (!isAdmin(actor)) throw forbidden();
-  const [grouped, review] = await Promise.all([
+  const [grouped, review, pendingReviews] = await Promise.all([
     db.enquiry.groupBy({ by: ["type"], where: { status: "NEW" }, _count: { _all: true } }),
     db.application.count({ where: { status: "SUBMITTED" } }),
+    db.review.count({ where: { status: "PENDING" } }),
   ]);
   const by = Object.fromEntries(grouped.map((g) => [g.type, g._count._all]));
-  return { career: by.CAREER_ASSISTANCE, outsourcing: by.FREELANCE_OUTSOURCING, contact: by.CONTACT, review };
+  return { career: by.CAREER_ASSISTANCE, outsourcing: by.FREELANCE_OUTSOURCING, contact: by.CONTACT, review, pendingReviews };
 }

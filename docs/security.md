@@ -22,6 +22,8 @@ This document lists what is implemented and tested. It is not a certification; a
 
 **Passport photos**: JPEG/PNG only, validated by content and extension, min 150×150 px, same size limit; EXIF/XMP/ICC/comments and PNG text/EXIF/time chunks are stripped before storage (only the orientation flag is kept), so no GPS or device data is retained. Served through the same authorised endpoint with `inline` disposition, `nosniff`, a sandbox CSP and a 1-hour private cache (a new upload always gets a new ID). Photo views are not audited, to keep the audit log meaningful.
 
+**Public media** (`/media/:id`): serves only About-page photos while published and job flyers while their job is publicly visible; CVs, candidate photos and enquiry attachments are never served there (tested). Admin images are validated, then re-encoded by sharp (resized, all metadata dropped). Reviews are moderated before display, rate-limited separately, and the database enforces 1–5 star ratings.
+
 **Headers**: nonce-based CSP (`script-src 'self' 'nonce-…' 'strict-dynamic'`, `frame-ancestors 'none'`, `object-src 'none'`), HSTS (production), `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`, COOP, no `X-Powered-By`. Private areas: `Cache-Control: private, no-store` and `noindex`.
 
 **Abuse prevention**: Postgres-backed rate limits (login per IP and per account, registration, reset, verification resend, public forms, uploads, applications); identifiers HMAC'd, raw IPs never stored. Honeypot field + consent checkbox on public forms.

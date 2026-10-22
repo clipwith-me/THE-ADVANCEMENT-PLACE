@@ -14,7 +14,7 @@ export function NavLinks({ items }: { items: { href: string; label: string }[] }
             <Link
               href={item.href}
               aria-current={active ? "page" : undefined}
-              className={`relative inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium transition-colors ${
+              className={`relative inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium whitespace-nowrap transition-colors ${
                 active ? "text-ink-900" : "text-ink-600 hover:text-ink-900"
               }`}
             >

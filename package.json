@@ -2,7 +2,7 @@
   "name": "the-advancement-place",
   "version": "0.1.0",
   "private": true,
-  "description": "The Advancement Place — recruitment, job discovery and career services platform.",
+  "description": "The Advancement Place \u2014 recruitment, job discovery and career services platform.",
   "engines": {
     "node": ">=20.11.0"
   },
@@ -42,6 +42,7 @@
     "pg": "^8.23.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "sharp": "^0.35.5",
     "zod": "^4.6.7"
   },
   "devDependencies": {

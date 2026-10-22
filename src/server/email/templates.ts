@@ -98,6 +98,18 @@ export function enquiryNotificationEmail(
   };
 }
 
+export function reviewNotificationEmail(to: string, fields: [string, string][], adminUrl: string): EmailMessage {
+  return {
+    to,
+    subject: "New review awaiting approval",
+    ...render({
+      heading: "New review awaiting approval",
+      paragraphs: [...fields.map(([k, v]) => `${k}: ${v}`), "It won't appear on the website until you approve it."],
+      action: { label: "Review it in the admin dashboard", url: adminUrl },
+    }),
+  };
+}
+
 export function adminInviteEmail(to: string, name: string, invitedBy: string, url: string): EmailMessage {
   return {
     to,

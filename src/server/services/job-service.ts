@@ -8,6 +8,7 @@ import { parseOrThrow } from "@/lib/validation/parse";
 import { jobSchema, type JobSearch } from "@/lib/validation/job";
 import { audit } from "../audit";
 import { canManageJobs, type Actor } from "../auth/policies";
+import { deleteStoredFile, storeDocument, type IncomingFile } from "./file-service";
 
 export const PAGE_SIZE = 10;
 
@@ -42,6 +43,7 @@ export const publicJobSelect = {
   publishedAt: true,
   updatedAt: true,
   category: { select: { id: true, name: true, slug: true } },
+  flyer: { select: { id: true, mimeType: true, originalName: true } },
 } satisfies Prisma.JobSelect;
 
 export type PublicJob = Prisma.JobGetPayload<{ select: typeof publicJobSelect }>;
@@ -237,13 +239,26 @@ export async function getJobForAdmin(actor: Actor, id: string) {
   assertCanManage(actor);
   const job = await db.job.findUnique({
     where: { id },
-    include: { category: true, _count: { select: { applications: true } } },
+    include: {
+      category: true,
+      flyer: { select: { id: true, mimeType: true, originalName: true } },
+      _count: { select: { applications: true } },
+    },
   });
   if (!job) throw notFound("That job doesn't exist.");
   return job;
 }
 
 export type SaveIntent = "draft" | "publish";
+
+/** Optional flyer change submitted with the job form. */
+export interface FlyerChange {
+  upload?: IncomingFile | null;
+  remove?: boolean;
+}
+
+// Image flyers are resized inside the transaction, which can take a few seconds.
+const UPLOAD_TX = { timeout: 30_000 };
 
 function toJobData(input: ReturnType<typeof jobSchema.parse>) {
   return {
@@ -285,16 +300,18 @@ async function assertCategory(categoryId: string) {
   if (!exists) throw validationError("Please fix the highlighted fields.", { categoryId: ["Select a category"] });
 }
 
-export async function createJob(actor: Actor, raw: Record<string, string>, intent: SaveIntent) {
+export async function createJob(actor: Actor, raw: Record<string, string>, intent: SaveIntent, flyer: FlyerChange = {}) {
   assertCanManage(actor);
   const input = parseOrThrow(jobSchema, raw);
   await assertCategory(input.categoryId);
   const data = toJobData(input);
   if (intent === "publish") assertPublishable(data.deadline);
   return db.$transaction(async (tx) => {
+    const flyerFile = flyer.upload ? await storeDocument(tx, { kind: "JOB_FLYER", ownerId: null, file: flyer.upload }) : null;
     const job = await tx.job.create({
       data: {
         ...data,
+        flyerId: flyerFile?.id ?? null,
         slug: jobSlug(input.title, input.city ?? input.state),
         status: intent === "publish" ? "PUBLISHED" : "DRAFT",
         publishedAt: intent === "publish" ? new Date() : null,
@@ -303,10 +320,10 @@ export async function createJob(actor: Actor, raw: Record<string, string>, inten
     });
     await audit({ actorId: actor.id, action: intent === "publish" ? "job.create_publish" : "job.create_draft", entityType: "Job", entityId: job.id }, tx);
     return job;
-  });
+  }, UPLOAD_TX);
 }
 
-export async function updateJob(actor: Actor, id: string, raw: Record<string, string>, intent: SaveIntent | "save") {
+export async function updateJob(actor: Actor, id: string, raw: Record<string, string>, intent: SaveIntent | "save", flyer: FlyerChange = {}) {
   assertCanManage(actor);
   const existing = await getJobForAdmin(actor, id);
   const input = parseOrThrow(jobSchema, raw);
@@ -315,17 +332,22 @@ export async function updateJob(actor: Actor, id: string, raw: Record<string, st
   const willBePublished = intent === "publish" || (intent === "save" && existing.status === "PUBLISHED");
   if (willBePublished) assertPublishable(data.deadline);
   return db.$transaction(async (tx) => {
+    // A new upload replaces the old flyer; "remove" clears it. The old file is deleted either way.
+    const newFlyer = flyer.upload ? await storeDocument(tx, { kind: "JOB_FLYER", ownerId: null, file: flyer.upload }) : null;
+    const flyerChanged = Boolean(newFlyer) || (flyer.remove && existing.flyerId);
     const job = await tx.job.update({
       where: { id },
       data: {
         ...data,
+        ...(flyerChanged ? { flyerId: newFlyer?.id ?? null } : {}),
         ...(intent === "publish" ? { status: "PUBLISHED", publishedAt: existing.publishedAt ?? new Date(), closedAt: null } : {}),
         ...(intent === "draft" ? { status: "DRAFT" } : {}),
       },
     });
-    await audit({ actorId: actor.id, action: `job.update_${intent}`, entityType: "Job", entityId: id }, tx);
+    if (flyerChanged && existing.flyerId) await deleteStoredFile(tx, existing.flyerId);
+    await audit({ actorId: actor.id, action: `job.update_${intent}`, entityType: "Job", entityId: id, metadata: flyerChanged ? { flyer: newFlyer ? "replaced" : "removed" } : undefined }, tx);
     return job;
-  });
+  }, UPLOAD_TX);
 }
 
 export type JobTransition = "publish" | "unpublish" | "close" | "archive" | "reopen";
