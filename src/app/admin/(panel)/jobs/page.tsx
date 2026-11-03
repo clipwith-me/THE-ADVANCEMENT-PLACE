@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BriefcaseBusiness, Plus } from "lucide-react";
 import { DataTable, FilterBar, FilterInput, FilterSelect } from "@/components/admin/data-table";
 import { JobRowActions } from "@/components/admin/job-row-actions";
+import { Alert } from "@/components/ui/alert";
 import { ButtonLink } from "@/components/ui/button";
 import { EmptyState, PageHeader, Pagination } from "@/components/ui/misc";
 import { DemoBadge, ExpiredBadge, JobStatusBadge } from "@/components/ui/status-badge";
@@ -9,7 +10,7 @@ import { formatDate } from "@/lib/domain/format";
 import { publicJobState } from "@/lib/domain/job-visibility";
 import { JOB_STATUSES, JOB_STATUS_LABEL, type JobStatusValue } from "@/lib/domain/labels";
 import { requireAdmin } from "@/server/auth/current";
-import { listJobsForAdmin } from "@/server/services/job-service";
+import { jobsWithContactDetails, listJobsForAdmin } from "@/server/services/job-service";
 
 export const metadata = { title: "Jobs" };
 
@@ -21,7 +22,7 @@ export default async function AdminJobsPage({ searchParams }: { searchParams: Pr
   const q = typeof params.q === "string" ? params.q.slice(0, 100) : undefined;
   const status = JOB_STATUSES.includes(params.status as JobStatusValue) ? (params.status as JobStatusValue) : undefined;
   const page = Math.max(1, Math.min(1000, Number(params.page) || 1));
-  const { items, total, pageCount } = await listJobsForAdmin(admin, { q, status, page });
+  const [{ items, total, pageCount }, withContacts] = await Promise.all([listJobsForAdmin(admin, { q, status, page }), jobsWithContactDetails(admin)]);
 
   return (
     <>
@@ -34,6 +35,20 @@ export default async function AdminJobsPage({ searchParams }: { searchParams: Pr
           </ButtonLink>
         }
       />
+      {withContacts.length > 0 && (
+        <Alert tone="warning" title="Remove employers' contact details from these jobs" className="mb-5">
+          <p>Candidates could contact the employer directly instead of applying through the website. Open each job, remove the phone number, email or link, and save.</p>
+          <ul className="mt-2 list-disc pl-5">
+            {withContacts.map((j) => (
+              <li key={j.id}>
+                <Link href={`/admin/jobs/${j.id}/edit`} className="link">
+                  {j.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Alert>
+      )}
       <FilterBar action="/admin/jobs">
         <FilterInput name="q" label="Search title" defaultValue={q} placeholder="e.g. Accounts Officer" />
         <FilterSelect name="status" label="Status" defaultValue={status} options={JOB_STATUSES.map((s) => ({ value: s, label: JOB_STATUS_LABEL[s] }))} />

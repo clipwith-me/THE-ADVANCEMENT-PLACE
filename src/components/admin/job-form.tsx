@@ -102,7 +102,10 @@ export function JobForm({
         />
       </Fieldset>
 
-      <Fieldset legend="Description" description="Write in plain text. Put each list item on its own line.">
+      <Fieldset
+        legend="Description"
+        description="Write in plain text. Put each list item on its own line. Don't include the employer's phone number, email or links: candidates apply through the website."
+      >
         <TextAreaField name="summary" label="Short summary" required rows={2} maxLength={300} defaultValue={v.summary} className="sm:col-span-2" hint="Shown on job cards and search results (20–300 characters)." />
         <TextAreaField name="description" label="Full description" required rows={8} maxLength={10000} defaultValue={v.description} className="sm:col-span-2" hint="Separate paragraphs with a blank line." />
         <TextAreaField name="responsibilities" label="Responsibilities" required rows={5} defaultValue={v.responsibilities?.join("\n")} className="sm:col-span-2" hint="One per line." />
@@ -162,7 +165,7 @@ export function JobForm({
           optionalLabel
           accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
           className="sm:col-span-2"
-          hint="JPEG, PNG or PDF, up to 15 MB."
+          hint="JPEG, PNG or PDF, up to 15 MB. Use a flyer without the employer's phone number, email or links (the agency's own contacts are fine). Candidates should apply through the website."
         />
       </Fieldset>
 

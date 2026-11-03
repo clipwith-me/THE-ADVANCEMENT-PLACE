@@ -3,6 +3,7 @@ import type { JobStatus } from "@/generated/prisma/enums";
 import { db } from "@/lib/db";
 import { forbidden, notFound, validationError } from "@/lib/errors";
 import { endOfLagosDay, liveJobWhere, publicJobState, type PublicJobState } from "@/lib/domain/job-visibility";
+import { findContactDetails } from "@/lib/domain/contact-details";
 import { jobSlug } from "@/lib/domain/slug";
 import { parseOrThrow } from "@/lib/validation/parse";
 import { jobSchema, type JobSearch } from "@/lib/validation/job";
@@ -233,6 +234,39 @@ export async function listJobsForAdmin(actor: Actor, opts: { q?: string; status?
     }),
   ]);
   return { items, total, page: opts.page, pageCount: Math.max(1, Math.ceil(total / pageSize)) };
+}
+
+/**
+ * Published or draft jobs whose text contains employer contact details
+ * (posted before the rule existed), so staff can find and remove them.
+ */
+export async function jobsWithContactDetails(actor: Actor) {
+  assertCanManage(actor);
+  const jobs = await db.job.findMany({
+    where: { status: { in: ["DRAFT", "PUBLISHED"] } },
+    select: {
+      id: true,
+      title: true,
+      employerName: true,
+      summary: true,
+      description: true,
+      responsibilities: true,
+      requirements: true,
+      qualifications: true,
+      skills: true,
+      city: true,
+      applyInstructions: true,
+    },
+  });
+  return jobs
+    .filter((j) =>
+      findContactDetails(
+        [j.title, j.employerName, j.summary, j.description, ...j.responsibilities, ...j.requirements, ...j.qualifications, ...j.skills, j.city, j.applyInstructions]
+          .filter(Boolean)
+          .join("\n"),
+      ).length,
+    )
+    .map((j) => ({ id: j.id, title: j.title }));
 }
 
 export async function getJobForAdmin(actor: Actor, id: string) {

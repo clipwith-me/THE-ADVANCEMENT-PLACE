@@ -20,6 +20,7 @@ This guide is for The Advancement Place staff. Day-to-day, the website needs no 
 - **Reviews**: new reviews wait for you under Reviews → Awaiting approval. Press *Publish* to show one on the website, *Hide* to keep it off, or *Delete* for spam.
 - **Website photos**: add photos of the office and team for the About page. Each needs a short caption.
 - **Job flyers**: when posting or editing a job, use *Upload flyer* if there's a flyer for the vacancy.
+- **No employer contacts in jobs**: the site won't save a job containing a phone number, email or link (your own agency number and email are fine), so candidates always apply through the website. Use flyers without the employer's contact details too.
 - **Candidates**: search and suspend accounts.
 - **Enquiries**: career assistance, freelance/outsourcing and contact messages.
 - **Staff**: add a staff member (they receive an email to choose a password) or remove someone's access. Keep at least two active administrators so one can always help the other.

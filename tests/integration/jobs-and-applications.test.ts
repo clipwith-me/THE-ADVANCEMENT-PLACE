@@ -11,7 +11,7 @@ import {
   withdrawApplication,
   getApplicationForAdmin,
 } from "@/server/services/application-service";
-import { createJob, getPublicJob, searchJobs, transitionJob, updateJob } from "@/server/services/job-service";
+import { createJob, getPublicJob, jobsWithContactDetails, searchJobs, transitionJob, updateJob } from "@/server/services/job-service";
 import { getCompleteness, saveProfile } from "@/server/services/profile-service";
 import { updateSettings } from "@/server/services/settings-service";
 import { completeProfileForm, makeAdmin, makeCandidate, makeCategory, makeJob, resetDb } from "../helpers";
@@ -99,6 +99,31 @@ describe("admin job management", () => {
     await transitionJob(admin, job.id, "reopen");
     expect((await db.job.findUniqueOrThrow({ where: { id: job.id } })).status).toBe("DRAFT");
     expect(await db.auditEvent.count({ where: { entityId: job.id } })).toBeGreaterThanOrEqual(5);
+  });
+
+  it("refuses employers' contact details in any job text, but allows the agency's own", async () => {
+    const cat = await makeCategory();
+    const admin = await makeAdmin();
+    const cases: [string, string][] = [
+      ["summary", "Great role in Abeokuta — call the manager on 0803 123 4567 today."],
+      ["description", "A full description of the role that is comfortably longer than fifty characters. Email cv@acme.ng"],
+      ["applyInstructions", "Apply via wa.me/2348031234567"],
+      ["requirements", "One year's experience\nVisit www.acme.com first"],
+    ];
+    for (const [field, value] of cases) {
+      await expect(createJob(admin, input(cat.id, { [field]: value }), "publish")).rejects.toMatchObject({
+        code: "VALIDATION",
+        fieldErrors: { [field]: [expect.stringMatching(/^Remove the /)] },
+      });
+    }
+    expect(await db.job.count()).toBe(0);
+    const ok = await createJob(admin, input(cat.id, { applyInstructions: "Questions? Call us on 0916 997 5272 or email advancementplace@gmail.com." }), "publish");
+    expect(ok.status).toBe("PUBLISHED");
+
+    // Jobs saved before the rule existed are listed for staff to fix.
+    const old = await makeJob({ title: "Old Listing", applyInstructions: "Text 08031234567" });
+    expect(await jobsWithContactDetails(admin)).toEqual([{ id: old.id, title: "Old Listing" }]);
+    await expect(jobsWithContactDetails(await makeCandidate())).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
   it("refuses to publish with a past deadline and validates input", async () => {

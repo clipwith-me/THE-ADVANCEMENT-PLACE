@@ -147,3 +147,37 @@ describe("reviewer display name", () => {
     expect(reviewerDisplayName("   ")).toBe("Anonymous");
   });
 });
+
+describe("contact details in job text", () => {
+  it("finds employers' phone numbers, emails and links in common formats", async () => {
+    const { findContactDetails } = await import("@/lib/domain/contact-details");
+    for (const t of ["Call 0803 123 4567", "WhatsApp +234 803 123 4567", "Tel: 080-3123-4567", "2348031234567", "(0803) 123.4567", "+234 (0) 803 123 4567"]) {
+      expect(findContactDetails(t), t).toEqual(["phone"]);
+    }
+    expect(findContactDetails("Send your CV to hr@acme-foods.ng")).toEqual(["email"]);
+    for (const t of ["Apply at https://acme.com/careers", "visit www.acme.ng", "Chat: wa.me/2348031234567", "acmefoods.com.ng/jobs"]) {
+      expect(findContactDetails(t), t).toContain("link");
+    }
+  });
+
+  it("allows the agency's own contact details and ordinary numbers", async () => {
+    const { findContactDetails } = await import("@/lib/domain/contact-details");
+    for (const t of [
+      "Call us on +234 916 997 5272 or 0916 997 5272",
+      "Email advancementplace@gmail.com or apply on theadvancementplace.com",
+      "Salary ₦150,000 – ₦200,000 per month",
+      "Monthly pay 150000 - 250000",
+      "Graduated between 2020 - 2026",
+      "Apply before 31/12/2026",
+      "B.Sc., HND or OND; Node.js and React; 3-5 years",
+      "Ref: TAP-2026-0042",
+    ]) {
+      expect(findContactDetails(t), t).toEqual([]);
+    }
+  });
+
+  it("explains what to remove", async () => {
+    const { contactDetailsMessage } = await import("@/lib/domain/contact-details");
+    expect(contactDetailsMessage(["phone", "email"])).toMatch(/^Remove the phone number and email address\./);
+  });
+});

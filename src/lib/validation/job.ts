@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { EMPLOYMENT_TYPES, SALARY_PERIODS, WORK_ARRANGEMENTS } from "../domain/labels";
+import { contactDetailsMessage, findContactDetails } from "../domain/contact-details";
 import { JOB_LOCATIONS } from "../domain/nigeria";
 import { optionalText, requiredText, splitList } from "./common";
 
@@ -74,6 +75,23 @@ export const jobSchema = z
       .transform((v) => v === "on"),
   })
   .superRefine((d, ctx) => {
+    // Employer contact details would let candidates bypass the agency.
+    const text: [string, string | undefined][] = [
+      ["title", d.title],
+      ["employerName", d.employerName],
+      ["summary", d.summary],
+      ["description", d.description],
+      ["responsibilities", d.responsibilities.join("\n")],
+      ["requirements", d.requirements.join("\n")],
+      ["qualifications", d.qualifications.join("\n")],
+      ["skills", d.skills.join("\n")],
+      ["city", d.city],
+      ["applyInstructions", d.applyInstructions],
+    ];
+    for (const [field, value] of text) {
+      const kinds = value ? findContactDetails(value) : [];
+      if (kinds.length) ctx.addIssue({ code: "custom", path: [field], message: contactDetailsMessage(kinds) });
+    }
     if (d.salaryMin != null && d.salaryMax != null && d.salaryMax < d.salaryMin) {
       ctx.addIssue({ code: "custom", path: ["salaryMax"], message: "Maximum salary can't be below the minimum" });
     }
