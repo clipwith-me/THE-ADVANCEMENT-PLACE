@@ -29,16 +29,24 @@ test.describe("public website", () => {
     expect(h["x-powered-by"]).toBeUndefined();
   });
 
-  test("job board is gated for visitors but job adverts are public", async ({ page }) => {
+  test("job board is gated; job pages show visitors a preview and ask them to sign up for the rest", async ({ page, isMobile }) => {
     await page.goto("/jobs");
     await expect(page.getByRole("heading", { name: "Sign in to browse the job board" })).toBeVisible();
     await page.goto("/");
     await page.getByRole("link", { name: "Accounts Officer" }).first().click();
     await expect(page.getByRole("heading", { level: 1, name: "Accounts Officer" })).toBeVisible();
     await expect(page.getByText("Demonstration listing")).toBeVisible();
-    await expect(page.getByRole("link", { name: /Create account to apply/ })).toBeVisible();
+    // The sidebar button is desktop-only; phones use the in-page sign-up box instead of two in a row.
+    if (!isMobile) await expect(page.getByRole("link", { name: /Create account to apply/ })).toBeVisible();
+    // Preview only: the full details aren't sent to signed-out visitors.
+    await expect(page.getByRole("heading", { name: "Sign up to see the full job" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "About the role" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Requirements" })).toHaveCount(0);
+    await expect(page.getByText("Salary", { exact: true })).toHaveCount(0);
     // Demo jobs are never indexable.
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+    await page.getByRole("link", { name: /Create free account/ }).click();
+    await expect(page).toHaveURL(/\/register\?next=%2Fjobs%2F/);
   });
 
   test("sitemap and robots exclude private areas and demo jobs", async ({ request }) => {

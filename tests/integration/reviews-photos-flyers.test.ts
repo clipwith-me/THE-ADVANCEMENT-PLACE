@@ -141,7 +141,7 @@ describe("job flyers", () => {
     state: "Ogun",
   });
 
-  it("is optional, public while the job is visible, and replaceable", async () => {
+  it("is optional, visible to signed-in users while the job is visible, and replaceable", async () => {
     const admin = await makeAdmin();
     const cat = await makeCategory();
     const plain = await createJob(admin, input(cat.id), "publish");
@@ -156,20 +156,25 @@ describe("job flyers", () => {
     await updateJob(admin, draft.id, input(cat.id), "publish");
     const pub = await getPublicJob(draft.slug);
     expect(pub?.job.flyer?.id).toBe(flyerId);
-    expect((await getPublicMedia(null, flyerId)).isPublic).toBe(true);
+    // Flyers carry the full job details, so like the description they need an account.
+    await expect(getPublicMedia(null, flyerId)).rejects.toMatchObject({ code: "NOT_FOUND" });
+    const cand = await makeCandidate();
+    const seen = await getPublicMedia(cand, flyerId);
+    expect(seen.file.id).toBe(flyerId);
+    expect(seen.isPublic).toBe(false); // never cached publicly
 
     // Replacing deletes the old file; removing clears it.
     await updateJob(admin, draft.id, input(cat.id), "save", { upload: { name: "flyer.pdf", bytes: samplePdf() } });
     const replaced = (await db.job.findUniqueOrThrow({ where: { id: draft.id } })).flyerId!;
     expect(replaced).not.toBe(flyerId);
     expect(await db.storedFile.count({ where: { id: flyerId } })).toBe(0);
-    expect((await getPublicMedia(null, replaced)).file.mimeType).toBe("application/pdf");
+    expect((await getPublicMedia(cand, replaced)).file.mimeType).toBe("application/pdf");
     await updateJob(admin, draft.id, input(cat.id), "save", { remove: true });
     expect((await db.job.findUniqueOrThrow({ where: { id: draft.id } })).flyerId).toBeNull();
     expect(await db.storedFile.count({ where: { kind: "JOB_FLYER" } })).toBe(0);
   });
 
-  it("follows the job-advert privacy setting and rejects other file types", async () => {
+  it("is hidden from visitors whatever the preview setting, and rejects other file types", async () => {
     const admin = await makeAdmin();
     const cat = await makeCategory();
     const job = await createJob(admin, input(cat.id), "publish", { upload: { name: "flyer.png", bytes: solidPng(600, 800) } });

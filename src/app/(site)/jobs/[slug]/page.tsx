@@ -101,8 +101,11 @@ export default async function JobPage({ params }: Props) {
   const [user, settings] = await Promise.all([getCurrentUser(), getSettings()]);
   const here = `/jobs/${job.slug}`;
 
-  // When the client turns public previews off, job pages follow the board gate.
+  // Signed-out visitors get a short preview (title, basics, summary) and must
+  // sign up for the rest; with previews turned off they get the board gate.
   if (!settings.publicJobPreview && !user) return <BoardGate next={here} liveCount={await liveJobCount()} />;
+  const locked = !user;
+  const authQuery = `?next=${encodeURIComponent(here)}`;
 
   const live = state === "LIVE";
   const related = live ? await relatedJobs(job) : [];
@@ -125,10 +128,11 @@ export default async function JobPage({ params }: Props) {
     );
   } else if (!user) {
     const q = `?next=${encodeURIComponent(here)}`;
+    // On small screens the "Sign up to see the full job" box in the page already asks; avoid a second one right below.
     panel = (
-      <div>
+      <div className="hidden lg:block">
         <p className="font-semibold text-ink-900">Interested in this role?</p>
-        <p className="mt-1.5 text-sm text-ink-600">Create a free account and complete your profile to apply.</p>
+        <p className="mt-1.5 text-sm text-ink-600">Create a free account to see the full job details and apply.</p>
         <div className="mt-4 grid gap-2">
           <ButtonLink href={`/register${q}`} size="lg">
             <UserPlus aria-hidden className="size-4" /> Create account to apply
@@ -195,7 +199,8 @@ export default async function JobPage({ params }: Props) {
 
   return (
     <>
-      {live && !job.isDemo && (
+      {/* JobPosting data must match what visitors can read, so it's only emitted with the full details. */}
+      {live && !job.isDemo && !locked && (
         <script
           type="application/ld+json"
           nonce={nonce}
@@ -225,6 +230,8 @@ export default async function JobPage({ params }: Props) {
       <JobDetail
         job={job}
         applyPanel={panel}
+        locked={locked}
+        unlockHref={{ register: `/register${authQuery}`, login: `/login${authQuery}` }}
         banner={
           job.isDemo ? (
             <Alert tone="warning" title="Demonstration listing" className="mb-6">

@@ -64,6 +64,7 @@ test("an admin adds a flyer to a job and visitors see it", async ({ page, isMobi
 
   await page.goto("/");
   await page.getByRole("link", { name: "Front-End Developer (React)" }).first().click();
+  await expect(page.getByRole("heading", { name: "About the role" })).toBeVisible(); // signed in: full details
   await expect(page.getByRole("img", { name: "Flyer for Front-End Developer (React)" })).toBeVisible();
   expect(await loaded(page, "Flyer for Front-End Developer (React)")).toBe(true);
 });

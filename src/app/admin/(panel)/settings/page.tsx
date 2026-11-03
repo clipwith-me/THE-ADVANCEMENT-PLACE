@@ -29,8 +29,8 @@ export default async function AdminSettingsPage() {
             <CheckboxField
               name="publicJobPreview"
               defaultChecked={s.publicJobPreview}
-              label="Show job adverts publicly"
-              hint="When on, individual job pages are visible to visitors and search engines (applying still needs a complete profile). When off, only signed-in users can view them."
+              label="Show job previews to visitors"
+              hint="When on, visitors who aren't signed in see each job's title, type, location and short summary, and must create an account to read the full details. When off, they must sign in before seeing anything."
             />
             <CheckboxField
               name="requireCvForProfile"

@@ -7,7 +7,6 @@ import { sha256Hex } from "@/lib/crypto";
 import { notFound, validationError } from "@/lib/errors";
 import { publicJobState } from "@/lib/domain/job-visibility";
 import { canDownloadFile, isAdmin, type Actor } from "../auth/policies";
-import { getSettings } from "./settings-service";
 import { databaseStorage } from "../storage/storage";
 import { sanitizeFilename, sanitizeImageName, validateDocument, validateImage } from "../storage/file-validation";
 import { toWebJpeg } from "../storage/image-processing";
@@ -113,9 +112,10 @@ export async function getFileForDownload(actor: Actor | null, fileId: string) {
 }
 
 /**
- * Files that may be shown on public pages: published website photos, and job
- * flyers while their job is publicly visible (respecting the "show job
- * adverts publicly" setting). Admins can always preview. Everything else —
+ * Files that may be shown on public pages: published website photos (to
+ * anyone), and job flyers while their job is visible — flyers carry the full
+ * job details, so like the description they need a signed-in account.
+ * Admins can always preview. Everything else —
  * CVs, candidate photos, enquiry attachments — is never served here.
  */
 export async function getPublicMedia(actor: Actor | null, fileId: string) {
@@ -130,10 +130,8 @@ export async function getPublicMedia(actor: Actor | null, fileId: string) {
   if (!file || (file.kind !== "SITE_PHOTO" && file.kind !== "JOB_FLYER")) throw notFound();
   let isPublic = false;
   if (file.kind === "SITE_PHOTO") isPublic = Boolean(file.sitePhoto?.published);
-  if (file.kind === "JOB_FLYER" && file.flyerOf && publicJobState(file.flyerOf) !== "HIDDEN") {
-    isPublic = (await getSettings()).publicJobPreview || Boolean(actor);
-  }
-  if (!isPublic && !isAdmin(actor)) throw notFound();
+  const flyerVisible = file.kind === "JOB_FLYER" && Boolean(actor) && Boolean(file.flyerOf) && publicJobState(file.flyerOf!) !== "HIDDEN";
+  if (!isPublic && !flyerVisible && !isAdmin(actor)) throw notFound();
   const data = await databaseStorage().get(file.storageKey);
   if (!data) throw notFound();
   return { file, data, isPublic };
