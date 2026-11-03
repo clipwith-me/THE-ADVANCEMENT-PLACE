@@ -2,7 +2,7 @@
 
 Recruitment, job discovery and career-services platform for **The Advancement Place** (Abeokuta, Ogun State, Nigeria) — theadvancementplace.com. Built by Configur Web Agency.
 
-- **Public site**: homepage, about, career assistance, freelance & outsourcing, contact, privacy, terms, job adverts with JobPosting structured data.
+- **Public site**: homepage, about, career assistance, freelance & outsourcing, contact, privacy, terms, job pages (a preview for visitors; full details and JobPosting structured data for signed-in users).
 - **Candidates**: register → complete required profile (+ CV) → job board with search/filters → apply → track application status. NYSC status is optional.
 - **Administrators**: live dashboard, job lifecycle (draft → publish → close/archive), application review with status history and internal notes, candidate management, enquiry inboxes, site settings, activity log.
 

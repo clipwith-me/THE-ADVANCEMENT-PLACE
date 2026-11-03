@@ -23,7 +23,7 @@ This guide is for The Advancement Place staff. Day-to-day, the website needs no 
 - **Candidates**: search and suspend accounts.
 - **Enquiries**: career assistance, freelance/outsourcing and contact messages.
 - **Staff**: add a staff member (they receive an email to choose a password) or remove someone's access. Keep at least two active administrators so one can always help the other.
-- **Settings**: pause applications, show a banner, choose whether job adverts are public.
+- **Settings**: pause applications, show a banner, choose whether visitors see a short job preview before signing up.
 
 Forgotten password: use "Forgot your password?" on the sign-in page. It works for staff and candidates.
 

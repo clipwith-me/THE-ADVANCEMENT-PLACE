@@ -21,7 +21,7 @@ Day to day, staff are added and removed in **Admin › Staff** (invite by email;
 - **Reviews**: publish, hide or delete reviews submitted on the website (new ones show a badge in the menu and are emailed to the business inbox).
 - **Website photos**: add real photos with captions for the About page; show/hide, reorder or delete them.
 - **Jobs → Job flyer**: optionally attach a flyer (image or PDF) to any vacancy; it appears on the job page.
-- **Settings**: public job adverts on/off, CV and passport photo required for a complete profile, pause applications, announcement banner.
+- **Settings**: job previews for visitors on/off (full details always need an account), CV and passport photo required for a complete profile, pause applications, announcement banner.
 
 ## Demo data — remove before launch
 
